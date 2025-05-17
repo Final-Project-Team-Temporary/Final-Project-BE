@@ -1,4 +1,0 @@
-package com.example.whiplash.portfolio.rebalance;
-
-public interface RebalanceStrategy {
-}
