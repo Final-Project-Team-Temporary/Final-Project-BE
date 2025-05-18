@@ -1,4 +1,27 @@
 package com.example.whiplash.domain;
 
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "user_keywords")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class UserKeyword {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Integer priority;
+
+    // 단방향: UserKeyword → User
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // 단방향: UserKeyword → Keyword
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "keyword_id", nullable = false)
+    private Keyword keyword;
 }
