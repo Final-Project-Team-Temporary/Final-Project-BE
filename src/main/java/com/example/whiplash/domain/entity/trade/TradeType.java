@@ -1,4 +1,4 @@
-package com.example.whiplash.domain.trade;
+package com.example.whiplash.domain.entity.trade;
 
 public enum TradeType {
     /**

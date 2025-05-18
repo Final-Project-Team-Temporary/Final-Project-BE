@@ -1,4 +1,4 @@
-package com.example.whiplash.domain;
+package com.example.whiplash.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

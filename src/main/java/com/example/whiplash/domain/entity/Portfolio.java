@@ -1,7 +1,7 @@
-package com.example.whiplash.domain;
+package com.example.whiplash.domain.entity;
 
 
-import com.example.whiplash.domain.user.User;
+import com.example.whiplash.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

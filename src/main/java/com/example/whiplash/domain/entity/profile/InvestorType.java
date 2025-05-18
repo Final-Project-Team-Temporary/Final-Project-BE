@@ -1,4 +1,4 @@
-package com.example.whiplash.domain.profile;
+package com.example.whiplash.domain.entity.profile;
 
 public enum InvestorType {
     CONSERVATIVE, MODERATELY_CONSERVATIVE, MODERATE, MODERATELY_AGGRESSIVE, AGGRESSIVE

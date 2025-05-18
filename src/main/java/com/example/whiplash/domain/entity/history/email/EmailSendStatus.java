@@ -1,4 +1,4 @@
-package com.example.whiplash.domain.history.email;
+package com.example.whiplash.domain.entity.history.email;
 
 public enum EmailSendStatus {
     PENDING, SENT, FAILED, CANCELLED,

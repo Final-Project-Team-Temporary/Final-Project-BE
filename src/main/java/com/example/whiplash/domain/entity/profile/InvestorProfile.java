@@ -1,41 +1,42 @@
-package com.example.whiplash.domain.trade;
+package com.example.whiplash.domain.entity.profile;
 
 
-import com.example.whiplash.domain.user.User;
+import com.example.whiplash.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.FetchType.LAZY;
-import static jakarta.persistence.GenerationType.IDENTITY;
+import static jakarta.persistence.GenerationType.*;
 import static lombok.AccessLevel.PROTECTED;
 
 @Entity
-@Table(name = "mock_trade_logs")
+@Table(name = "investor_profiles")
 @Getter
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor
 @Builder
-public class MockTradeLog {
+public class InvestorProfile {
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Enumerated(STRING)
-    private TradeType tradeType;
+    private InvestorType investorType;
 
-    private LocalDateTime tradeTime;
-    private Integer quantity;
-    private Integer pricePerUnit;
-    private Integer totalPrice;
-    private Integer fee;
+    @Enumerated(STRING)
+    private RiskTolerance riskTolerance;
 
-    // 단방향: Log → User
+    private Integer investmentPeriod;
+    private Integer expectedReturn;
+
+    @Enumerated(value = STRING)
+    private ExperienceLevel experienceLevel;
+
+    // 단방향: Profile → User
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

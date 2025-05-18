@@ -1,25 +1,27 @@
-package com.example.whiplash.domain.article;
+package com.example.whiplash.domain.entity;
 
-import com.example.whiplash.domain.Keyword;
+import com.example.whiplash.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "article_keywords")
+@Table(name = "user_keywords")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class ArticleKeyword {
+public class UserKeyword {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 단방향: ArticleKeyword → ArticleIndex
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "article_index_id", nullable = false)
-    private ArticleIndex articleIndex;
+    private Integer priority;
 
-    // 단방향: ArticleKeyword → Keyword
+    // 단방향: UserKeyword → User
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // 단방향: UserKeyword → Keyword
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "keyword_id", nullable = false)
     private Keyword keyword;

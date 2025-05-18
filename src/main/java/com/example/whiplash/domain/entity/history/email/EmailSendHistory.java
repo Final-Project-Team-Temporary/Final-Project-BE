@@ -1,6 +1,6 @@
-package com.example.whiplash.domain.history.email;
+package com.example.whiplash.domain.entity.history.email;
 
-import com.example.whiplash.domain.user.User;
+import com.example.whiplash.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
