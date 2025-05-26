@@ -2,19 +2,15 @@ package com.example.whiplash.delivery.orchestrator;
 
 import com.example.whiplash.delivery.assginment.ArticleAssignmentService;
 import com.example.whiplash.delivery.email.EmailSendingService;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+@RequiredArgsConstructor
 @Service
 public class ArticleDeliveryOrchestrator {
     private final ArticleAssignmentService assignmentService;
     private final EmailSendingService emailService;
-
-    public ArticleDeliveryOrchestrator(
-            ArticleAssignmentService assignmentService,
-            EmailSendingService emailService) {
-        this.assignmentService = assignmentService;
-        this.emailService = emailService;
-    }
 
     /**
      * 전체 배포 워크플로우
