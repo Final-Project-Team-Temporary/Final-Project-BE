@@ -12,9 +12,12 @@ import lombok.*;
 @Builder
 public class UserKeyword {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_keyword_id")
     private Long id;
 
     private Integer priority;
+
+    private String keywordName;
 
     // 단방향: UserKeyword → User
     @ManyToOne(fetch = FetchType.LAZY)

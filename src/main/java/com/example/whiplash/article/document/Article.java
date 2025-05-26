@@ -19,4 +19,5 @@ public class Article {
     private String title;
     private String press;
     private LocalDateTime publishedAt;
+    private Category category;
 }

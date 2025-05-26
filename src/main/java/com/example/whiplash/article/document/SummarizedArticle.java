@@ -17,8 +17,19 @@ import java.time.LocalDateTime;
 public class SummarizedArticle {
     @Id
     private String id;
+
     private String originalArticleId;
+
+    private String title;
+
+    private Category category;
+
     private String summarizedContent;
+
     private SummaryLevel summaryLevel;
+
     private LocalDateTime summarizedAt;
+
+    private LocalDateTime publishedAt;
+
 }

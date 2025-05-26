@@ -18,6 +18,7 @@ import static lombok.AccessLevel.PROTECTED;
 @Table(name = "users")
 @Entity
 public class User {
+    @Column(name = "user_id")
     @Id @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
