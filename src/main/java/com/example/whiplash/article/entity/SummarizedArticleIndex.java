@@ -1,16 +1,16 @@
-package com.example.whiplash.domain.entity.article;
+package com.example.whiplash.article.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "article_indices")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class ArticleIndex {
+@Table(name = "article_indices")
+@Entity
+public class SummarizedArticleIndex {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
