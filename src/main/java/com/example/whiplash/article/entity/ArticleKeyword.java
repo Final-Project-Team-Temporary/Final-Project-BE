@@ -1,4 +1,4 @@
-package com.example.whiplash.domain.entity.article;
+package com.example.whiplash.article.entity;
 
 import com.example.whiplash.domain.entity.Keyword;
 import jakarta.persistence.*;
@@ -17,7 +17,7 @@ public class ArticleKeyword {
     // 단방향: ArticleKeyword → ArticleIndex
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "article_index_id", nullable = false)
-    private ArticleIndex articleIndex;
+    private SummarizedArticleIndex summarizedArticleIndex;
 
     // 단방향: ArticleKeyword → Keyword
     @ManyToOne(fetch = FetchType.LAZY)

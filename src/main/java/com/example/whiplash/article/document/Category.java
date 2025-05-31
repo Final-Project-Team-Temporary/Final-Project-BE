@@ -4,5 +4,5 @@ import lombok.Getter;
 
 @Getter
 public enum Category {
-    BATTERY, MEDICINE, STEEL
+    BATTERY, MEDICINE, STEEL, GOLD
 }

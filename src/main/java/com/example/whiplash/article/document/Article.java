@@ -15,9 +15,7 @@ import java.time.LocalDateTime;
 public class Article {
     @Id @GeneratedValue
     private String id;
-    private Long rdbId;
     private String title;
-    private String press;
     private LocalDateTime publishedAt;
     private Category category;
 }
