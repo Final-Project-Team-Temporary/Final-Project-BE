@@ -3338,7 +3338,7 @@
 											"top": 1460,
 											"width": 146.95166015625,
 											"height": 13,
-											"text": "-articleIndex: ArticleIndex",
+											"text": "-summarizedArticleIndex: ArticleIndex",
 											"horizontalAlignment": 0
 										}
 									],
@@ -42010,7 +42010,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGWcfthMLIyYaY="
 							},
-							"name": "articleIndex",
+							"name": "summarizedArticleIndex",
 							"visibility": "private",
 							"type": {
 								"$ref": "AAAAAAGWcfs0trIHdqQ="
