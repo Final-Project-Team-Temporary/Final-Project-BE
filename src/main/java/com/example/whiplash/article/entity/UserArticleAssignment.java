@@ -7,13 +7,16 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_article_assignments")
+@Table(name = "user_article_assignments",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "summarized_article_id"})   //TODO
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class UserArticleAssignment {
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
 
     // 단방향: Assignment → User

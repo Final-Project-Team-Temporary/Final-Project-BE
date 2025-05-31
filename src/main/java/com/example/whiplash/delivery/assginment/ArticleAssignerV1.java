@@ -82,7 +82,7 @@ public class ArticleAssignerV1 implements ArticleAssigner{
                     .filter(summary -> userInterestCategories.contains(summary.getCategory()))
                     // 난이도 일치
                     .filter(summary -> summary.getSummaryLevel().equals(userSummaryLevel))
-                    .filter(summary-> !assignedSummaryIds.contains(summary.getId()))
+                    .filter(summary-> !assignedSummaryIds.contains(summary.getId()))    //기사 중복 할당 방지
                     .limit(3)
                     .collect(Collectors.toList());
 
