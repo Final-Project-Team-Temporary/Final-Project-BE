@@ -1,7 +1,11 @@
 package com.example.whiplash.domain.entity.trade;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 public enum TradeType {
-    /**
-     * TODO: 어떤 값을 넣을지 고민 필요
-    * */
+    SPOT("현물"), FUTURES("선물");
+
+    private final String mean;
 }
