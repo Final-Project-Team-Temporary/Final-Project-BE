@@ -17,7 +17,7 @@ public class ScheduledDispatchStrategy implements DispatchStrategy {
      * cron 표현식은 application.yml 에서 dispatch.scheduled.cron 으로 정의
      */
     @Override
-    @Scheduled(cron = "${dispatch.scheduled.cron}")
+//    @Scheduled(cron = "${dispatch.scheduled.cron}")
     public void dispatchAll() {
         orchestrator.dispatchAll();
     }
