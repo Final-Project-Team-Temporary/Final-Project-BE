@@ -16,6 +16,7 @@ public class Article {
     @Id @GeneratedValue
     private String id;
     private String title;
+    private String press;
     private LocalDateTime publishedAt;
     private Category category;
 }

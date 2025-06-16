@@ -53,6 +53,7 @@ public class ArticleInitializer {
             Article newArticle = Article.builder()
                     .title(title1)
                     .category(category)
+                    .press("jtbc")
                     .publishedAt(publishedAt)
                     .build();
             return articleRepository.save(newArticle);
@@ -65,7 +66,7 @@ public class ArticleInitializer {
                     .press(press)
                     .publishedAt(publishedAt)
                     .createdAt(LocalDateTime.now())
-                    .mongoId(article.getId())
+                    .originalMongoId(article.getId())
                     .build();
             summarizedArticleIndexRepository.save(summarizedArticleIndex);
         }

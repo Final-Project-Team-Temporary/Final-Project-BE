@@ -18,5 +18,5 @@ public class SummarizedArticleIndex {
     private String press;
     private LocalDateTime publishedAt;
     private LocalDateTime createdAt;
-    private String mongoId;
+    private String originalMongoId;
 }
