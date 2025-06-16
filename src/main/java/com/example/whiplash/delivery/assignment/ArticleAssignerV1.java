@@ -90,7 +90,7 @@ public class ArticleAssignerV1 implements ArticleAssigner{
                         .user(user)
                         .assignedAt(now)
                         .summarizedArticleId(summary.getId())
-                        .sendStatus(EmailSendStatus.PENDING)
+                        .sendStatus(EmailSendStatus.NEED_TO_SEND)
                         .build());
             }
         }

@@ -105,7 +105,7 @@ public class ArticleInitializer {
                     User.builder().name("Alice").email("alice@test.com").age(25).role(Role.USER).summaryLevel(SummaryLevel.SHORT).build(),
                     User.builder().name("Bob").email("bob@test.com").age(30).role(Role.USER).summaryLevel(SummaryLevel.SHORT).build(),
                     User.builder().name("Charlie").email("charlie@test.com").age(28).role(Role.USER).summaryLevel(SummaryLevel.MEDIUM).build(),
-                    User.builder().name("David").email("david@test.com").age(35).role(Role.USER).summaryLevel(SummaryLevel.MEDIUM).build(),
+                    User.builder().name("David").email("rmsghchl0@naver.com").age(35).role(Role.USER).summaryLevel(SummaryLevel.MEDIUM).build(),
                     User.builder().name("Eve").email("eve@test.com").age(27).role(Role.USER).summaryLevel(SummaryLevel.MEDIUM).build()
             );
             userRepository.saveAll(users);
