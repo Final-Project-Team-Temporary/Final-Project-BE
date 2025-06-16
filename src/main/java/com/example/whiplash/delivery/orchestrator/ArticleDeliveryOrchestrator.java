@@ -1,8 +1,7 @@
 package com.example.whiplash.delivery.orchestrator;
 
-import com.example.whiplash.delivery.assginment.ArticleAssignmentService;
+import com.example.whiplash.delivery.assignment.ArticleAssignmentService;
 import com.example.whiplash.delivery.email.EmailSendingService;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,24 +1,19 @@
-package com.example.whiplash.delivery.assginment;
+package com.example.whiplash.delivery.assignment;
 
-import com.example.whiplash.article.document.Article;
 import com.example.whiplash.article.document.Category;
 import com.example.whiplash.article.document.SummarizedArticle;
 import com.example.whiplash.article.entity.UserArticleAssignment;
-import com.example.whiplash.article.repository.ArticleRepository;
 import com.example.whiplash.article.repository.SummarizedArticleRepository;
 import com.example.whiplash.article.repository.UserArticleAssignmentRepository;
-import com.example.whiplash.domain.entity.UserKeyword;
 import com.example.whiplash.domain.entity.history.email.EmailSendStatus;
 import com.example.whiplash.domain.entity.history.email.SummaryLevel;
 import com.example.whiplash.domain.repository.InvestorProfileRepository;
 import com.example.whiplash.domain.repository.UserKeywordRepository;
 import com.example.whiplash.user.User;
 import com.example.whiplash.user.repository.UserRepository;
-import com.example.whiplash.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

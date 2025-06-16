@@ -1,4 +1,4 @@
-package com.example.whiplash.delivery.assginment;
+package com.example.whiplash.delivery.assignment;
 
 import com.example.whiplash.article.entity.UserArticleAssignment;
 import com.example.whiplash.article.repository.UserArticleAssignmentRepository;
