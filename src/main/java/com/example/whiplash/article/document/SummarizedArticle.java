@@ -21,7 +21,7 @@ public class SummarizedArticle {
     @Id
     private String id;
 
-    @Indexed(unique = true)
+//    @Indexed(unique = true)
     private String originalArticleId;
 
     private String title;

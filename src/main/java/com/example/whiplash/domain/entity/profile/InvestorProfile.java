@@ -41,8 +41,12 @@ public class InvestorProfile {
     @Enumerated(value = STRING)
     private ExperienceLevel experienceLevel;
 
-    @ElementCollection //TODO: 값타입 매핑 확인 필요
+
+    @ElementCollection
     @Enumerated(STRING)
+    @CollectionTable(name = "investor_profile_interest_categories",
+            joinColumns = @JoinColumn(name = "investor_profile_id"))
+    @Column(name = "interest_category")
     private List<Category> interestCategories = new ArrayList<>();
 
     // 단방향: Profile → User

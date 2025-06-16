@@ -31,4 +31,8 @@ public class UserArticleAssignment {
     private EmailSendStatus sendStatus;
 
     private LocalDateTime assignedAt;
+
+    public void updateStatus(EmailSendStatus status) {
+        this.sendStatus = status;
+    }
 }

@@ -40,7 +40,6 @@ public class MongoCRUDTest {
         Article a = Article.builder()
                 .title("테스트 제목")
                 .press("jtbc")
-                .rdbId(1L)
                 .publishedAt(LocalDateTime.now())
                 .build();
         Article saved = articleRepository.save(a);
@@ -71,7 +70,6 @@ public class MongoCRUDTest {
         Article a = Article.builder()
                 .title("테스트 제목2")
                 .press("jtbc2")
-                .rdbId(2L)
                 .publishedAt(LocalDateTime.now())
                 .build();
         Article saved = articleRepository.save(a);
