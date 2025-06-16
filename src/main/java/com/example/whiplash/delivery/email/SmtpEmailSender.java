@@ -18,20 +18,16 @@ import java.util.stream.Collectors;
 public class SmtpEmailSender implements EmailSender {
 
     private final JavaMailSender mailSender;
-    private final UserRepository userRepository;
     private final SummarizedArticleRepository summarizedArticleRepository;
 
     @Override
-    public void sendSummarizedArticle(Long userId, List<String> summarizedArticleIds) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));    //TODO: 예외처리 모듈 가져오기
-
+    public void sendSummarizedArticlesToUser(String email, List<String> summarizedArticleIds) {
         List<SummarizedArticle> articles = summarizedArticleRepository.findAllById(summarizedArticleIds);
 
         String content = transformSummaryToContent(articles);
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(user.getEmail());
+        message.setTo(email);
         message.setSubject("오늘의 요약 뉴스입니다");
         message.setText(content);
 
