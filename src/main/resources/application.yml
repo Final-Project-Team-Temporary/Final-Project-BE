@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/whiplash
-    username: root
-    password:
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${RDB_URL}
+    username: ${RDB_USERNAME}
+    password: ${RDB_PASSWORD}
+    driver-class-name: ${RDB_DRIVER_CLASS_NAME}
   jpa:
     hibernate:
       ddl-auto: create
@@ -14,11 +14,22 @@ spring:
     show-sql: true
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: whiplash-mongo
+      host: ${NOSQL_HOST}
+      port: ${NOSQL_PORT}
+      database: ${NOSQL_DATABASE}
 #      username: root
 #      password:
+  mail:
+    host: ${GMAIL_HOST}
+    port: ${GMAIL_PORT}
+    username: ${GMAIL_USERNAME}
+    password: ${GMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 logging:
   level:
     org.springframework.data.mongodb.core.MongoTemplate: DEBUG
