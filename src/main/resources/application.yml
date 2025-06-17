@@ -17,8 +17,9 @@ spring:
       host: ${NOSQL_HOST}
       port: ${NOSQL_PORT}
       database: ${NOSQL_DATABASE}
-#      username: root
-#      password:
+      username: ${NOSQL_USERNAME}
+      password: ${NOSQL_PASSWORD}
+      authentication-database: ${NOSQL_AUTHENTICATION_DATABASE}
   mail:
     host: ${GMAIL_HOST}
     port: ${GMAIL_PORT}
@@ -30,6 +31,16 @@ spring:
           auth: true
           starttls:
             enable: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never
+
+
 logging:
   level:
     org.springframework.data.mongodb.core.MongoTemplate: DEBUG
