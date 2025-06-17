@@ -34,8 +34,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${RDB_PASSWORD}
       MYSQL_DATABASE: ${RDB_DATABASE}
-      MYSQL_USER: ${RDB_USERNAME}
-      MYSQL_PASSWORD: ${RDB_PASSWORD}
+#      MYSQL_USER: ${RDB_USERNAME}
+#      MYSQL_PASSWORD: ${RDB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
