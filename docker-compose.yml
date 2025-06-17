@@ -34,13 +34,13 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${RDB_PASSWORD}
       MYSQL_DATABASE: ${RDB_DATABASE}
-#      MYSQL_USER: ${RDB_USERNAME}
-#      MYSQL_PASSWORD: ${RDB_PASSWORD}
+      MYSQL_USER: ${RDB_USERNAME}
+      MYSQL_PASSWORD: ${RDB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
       # 아래 명령어를 모두 날림
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p${RDB_PASSWORD}"]
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u${RDB_USERNAME} -p${RDB_PASSWORD}" ]
       interval: 30s
       retries: 5
 
