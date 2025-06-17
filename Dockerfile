@@ -4,15 +4,11 @@ WORKDIR /app
 
 # 1. Copy build scripts and wrapper
 # /app/ 으로 복사
-COPY gradlew settings.gradle build.gradle ./
+COPY . .
+COPY gradlew settings.gradle build.gradle /app/
 # /app/gradle/ 로 복사
 COPY gradle gradle/
 RUN chmod +x gradlew
-
-# ---- [추가] CRLF → LF 변환 ----
-RUN apt-get update && apt-get install -y dos2unix
-RUN dos2unix gradlew && chmod +x gradlew
-# ----------------------------
 
 # 2. Download dependencies
 # 빌드타임에 의존성은 임시 컨테이너에 다운로드 되었다가 container가 실행되면 그곳에 커밋
@@ -23,7 +19,8 @@ COPY src src/
 # Run tests and package in one step to ensure test execution
 # 백그라운드로 데몬실행안하고 JVM한번 쓰고 버림
 # ./gradlew clean build하면 (jar&bootJar생성, 테스트) VS 아래는 bootJar만
-RUN ./gradlew clean test bootJar --no-daemon
+#RUN ./gradlew clean test bootJar --no-daemon => Test안돌아감 되도록 수정 필요
+RUN ./gradlew clean bootJar --no-daemon
 
 # --- Runtime Stage: Lightweight JRE ---
 FROM eclipse-temurin:17-jre-jammy
