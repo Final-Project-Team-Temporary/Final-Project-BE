@@ -16,7 +16,10 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          distribution: 'temurin'   # AdoptOpenJDK 기반의 Temurin 배포판
+          java-version: '17'        # 설치할 Java 버전
+          cache: 'gradle'           # Gradle 의존성 캐시 활성화 (선택)
+
 
       - name: Build (no Test)
         run: ./gradlew clean bootJar --no-daemon
