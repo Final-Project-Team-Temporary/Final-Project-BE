@@ -1,11 +1,11 @@
 version: "3.9"
-
+# econoeasy 이미지만을 가지고 해당 compose를 띄운다
 services:
   econoeasy:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: "${DOCKERHUB_USER}/econoeasy-be:${IMAGE_TAG}"
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: "${DOCKERHUB_USERNAME}/econoeasy-be:${IMAGE_TAG}"
     container_name: econoeasy-be
     env_file:
       - ./.env
