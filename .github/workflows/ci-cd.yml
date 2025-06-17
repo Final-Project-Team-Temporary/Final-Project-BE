@@ -44,32 +44,32 @@ jobs:
             $DOCKERHUB_USERNAME/econoeasy-be:$IMAGE_TAG
 
   # 2. 빌드 성공 후 배포
-deploy:
-  needs: build
-  if: github.ref == 'refs/heads/develop'
-  runs-on: ubuntu-latest
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
 
-  steps:
-    - name: Install SSH key
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
+    steps:
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Deploy to EC2 via SSH
-      env:
-        IMAGE_TAG: ${{ github.sha }}
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        SSH_USER: ${{ secrets.SSH_USER }}
-        SSH_HOST: ${{ secrets.SSH_HOST }}
-      run: |
-        ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST <<EOF
-          cd /home/$SSH_USER/econoeasy
-          # 환경변수 내보내기
-          export DOCKERHUB_USERNAME=$DOCKERHUB_USERNAME
-          export IMAGE_TAG=$IMAGE_TAG
-          # 방금 빌드·푸시된 SHA 태그 이미지를 명시적으로 내려받습니다.
-          docker pull $DOCKERHUB_USERNAME/econoeasy-be:$IMAGE_TAG
-          # 도커 컴포즈로 컨테이너를 재시작
-          docker-compose down
-          docker-compose up -d
-        EOF
+      - name: Deploy to EC2 via SSH
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST <<EOF
+            cd /home/$SSH_USER/econoeasy
+            # 환경변수 내보내기
+            export DOCKERHUB_USERNAME=$DOCKERHUB_USERNAME
+            export IMAGE_TAG=$IMAGE_TAG
+            # 방금 빌드·푸시된 SHA 태그 이미지를 명시적으로 내려받습니다.
+            docker pull $DOCKERHUB_USERNAME/econoeasy-be:$IMAGE_TAG
+            # 도커 컴포즈로 컨테이너를 재시작
+            docker-compose down
+            docker-compose up -d
+          EOF
