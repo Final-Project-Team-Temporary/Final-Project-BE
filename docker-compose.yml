@@ -40,7 +40,7 @@ services:
       - mysql_data:/var/lib/mysql
     healthcheck:
       # 아래 명령어를 모두 날림
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p${RDB_PASSWORD}"]
       interval: 30s
       retries: 5
 
