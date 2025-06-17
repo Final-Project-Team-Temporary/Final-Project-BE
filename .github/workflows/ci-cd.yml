@@ -8,6 +8,7 @@ jobs:
   # 1. 빌드·테스트·이미지 푸시
   build:
     runs-on: ubuntu-latest
+    environment: DOCKERHUB_USERNAME
 
     steps:
       - name: Check out code
@@ -45,6 +46,7 @@ jobs:
 
   # 2. 빌드 성공 후 배포
   deploy:
+    environment: DOCKERHUB_USERNAME
     needs: build
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
