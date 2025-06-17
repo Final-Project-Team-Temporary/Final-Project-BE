@@ -12,7 +12,14 @@ spring:
         format_sql: true
     #        default_batch_fetch_size: 100
     show-sql: true
-
+  data:
+    mongodb:
+      host: ${NOSQL_HOST}
+      port: ${NOSQL_PORT}
+      database: ${NOSQL_DATABASE}
+      username: ${NOSQL_USERNAME}
+      password: ${NOSQL_PASSWORD}
+      authentication-database: ${NOSQL_AUTHENTICATION_DATABASE}
   mail:
     host: ${GMAIL_HOST}
     port: ${GMAIL_PORT}
@@ -24,14 +31,3 @@ spring:
           auth: true
           starttls:
             enable: true
-#embedded mongoDB
-#  data:
-#    mongodb:
-#      host: localhost
-#      port: 27017
-#      database: test
-de:
-  flapdoodle:
-    mongodb:
-      embedded:
-        version: 4.4.0
