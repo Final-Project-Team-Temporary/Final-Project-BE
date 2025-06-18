@@ -20,18 +20,21 @@ import com.example.whiplash.user.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
-
-@Profile("dev")
+@Profile({"dev", "prod","prac"})
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class ArticleInitializer {
+public class ArticleInitializer implements ApplicationRunner {
     private final ArticleRepository articleRepository;
     private final SummarizedArticleRepository summarizedArticleRepository;
     private final UserRepository userRepository;
@@ -39,10 +42,12 @@ public class ArticleInitializer {
     private final UserKeywordRepository userKeywordRepository;
     private final KeywordRepository keywordRepository;
     private final InvestorProfileRepository investorProfileRepository;
+    private final Environment environment;
 
-    @PostConstruct
     @Transactional
-    void init() {
+    @Override
+    public void run(ApplicationArguments args) {
+        log.info("현재 프로파일: {}", Arrays.toString(environment.getActiveProfiles()));
         log.info("----Initializer 초기 세팅 시작");
 
         // === Article 저장 ===
