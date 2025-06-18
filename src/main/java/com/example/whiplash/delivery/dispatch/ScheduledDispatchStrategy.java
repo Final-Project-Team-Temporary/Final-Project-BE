@@ -17,7 +17,7 @@ public class ScheduledDispatchStrategy implements DispatchStrategy {
      * cron 표현식은 application.yml 에서 dispatch.scheduled.cron 으로 정의
      */
     @Override
-    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 18 * * *", zone = "Asia/Seoul")
     public void dispatchAll() {
         orchestrator.dispatchAll();
     }
