@@ -8,7 +8,7 @@ services:
     container_name: econoeasy-be
     # 변수 범위: docker-compose파일
     env_file:
-      - ./.env.prod
+      - ./.env
     depends_on:
       mysql:
         condition: service_healthy
@@ -56,7 +56,7 @@ services:
     restart: unless-stopped
     #실제포트:컨테이너포트
     env_file:
-      - ./.env.prod
+      - ./.env
     ports:
       - "27018:${SPRING_DATA_MONGODB_PORT}"
     environment:
