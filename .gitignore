@@ -40,3 +40,4 @@ application.yml
 application-*.yml
 .env
 .env.test
+.env.*
