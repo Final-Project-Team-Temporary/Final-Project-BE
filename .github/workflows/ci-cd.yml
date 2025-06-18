@@ -58,6 +58,17 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: ${{secrets.SSH_KNOWN_HOSTS}}
 
+      - name: Copy docker-compose.yml to EC2
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          DEST_PATH: /home/${{ secrets.SSH_USER }}/econoeasy/docker-compose.yml # EC2의 목적지 경로
+        run: |
+          # `docker-compose.yml` 파일이 리포지토리의 루트에 있다고 가정합니다.
+          # 만약 다른 경로에 있다면 `docker-compose.yml` 대신 해당 경로를 지정하세요.
+          scp -o StrictHostKeyChecking=no ./docker-compose.yml $SSH_USER@$SSH_HOST:$DEST_PATH
+
+
       - name: Deploy to EC2 via SSH
         env:
           IMAGE_TAG: ${{ github.sha }}
