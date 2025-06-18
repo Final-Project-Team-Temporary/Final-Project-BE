@@ -1,14 +1,14 @@
-version: "3.9"
 # econoeasy 이미지만을 가지고 해당 compose를 띄운다
 services:
   econoeasy:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: "${DOCKERHUB_USERNAME}/econoeasy-be:${IMAGE_TAG}"
     container_name: econoeasy-be
+    # 변수 범위: docker-compose파일
     env_file:
-      - ./.env
+      - ./.env.prod
     depends_on:
       mysql:
         condition: service_healthy
@@ -16,31 +16,37 @@ services:
         condition: service_healthy
     ports:
       - "8082:8080"
+    networks:
+      - backend-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       retries: 3
+    # 변수 범위: 컨테이너 내부 어플리케이션
+#    environment:
 
   mysql:
     image: mysql:8.0
     container_name: mysql
     restart: unless-stopped
-    ports:
-      - "3306:3306"
     # .env 파일로부터 RDB 계정 정보를 주입
     env_file:
       - ./.env
+    ports:
+      - "3307:${SPRING_DATASOURCE_PORT}"
     # mysql을 컨테이너로 실행하는거기에, 초기 비번, database를 여기서 설정해야함
     environment:
-      MYSQL_ROOT_PASSWORD: ${RDB_PASSWORD}
-      MYSQL_DATABASE: ${RDB_DATABASE}
-      MYSQL_USER: ${RDB_USERNAME}
-      MYSQL_PASSWORD: ${RDB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      MYSQL_DATABASE: ${SPRING_DATASOURCE_DATABASE}
+#      MYSQL_USER: ${RDB_USERNAME}
+#      MYSQL_PASSWORD: ${RDB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - backend-net
     healthcheck:
       # 아래 명령어를 모두 날림
-      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u${RDB_USERNAME} -p${RDB_PASSWORD}" ]
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u${SPRING_DATASOURCE_USERNAME} -p${SPRING_DATASOURCE_PASSWORD}" ]
       interval: 30s
       retries: 5
 
@@ -48,21 +54,39 @@ services:
     image: mongo:6.0
     container_name: mongo
     restart: unless-stopped
-    ports:
-      - "27017:27017"
+    #실제포트:컨테이너포트
     env_file:
-      - ./.env
+      - ./.env.prod
+    ports:
+      - "27018:${SPRING_DATA_MONGODB_PORT}"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${NOSQL_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${NOSQL_PASSWORD}
-      MONGO_INITDB_DATABASE: ${NOSQL_DATABASE}
+      MONGO_INITDB_ROOT_USERNAME: ${SPRING_DATA_MONGODB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${SPRING_DATA_MONGODB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${SPRING_DATA_MONGODB_DATABASE}
     volumes:
       - mongo_data:/data/db
+    networks:
+      - backend-net
     healthcheck:
-      test: ["CMD", "mongo", "--username", "${NOSQL_USERNAME}", "--password", "${NOSQL_PASSWORD}", "--eval", "db.adminCommand('ping')"]
+      test: [
+        "CMD",
+        "mongosh",
+        "--quiet",
+        "--eval",
+        "db.adminCommand('ping').ok",
+        "-u",
+        "root",
+        "-p",
+        "1111"
+      ]
       interval: 30s
-      retries: 5
+      timeout: 10s
+      retries: 3
+# cmd에서 몽고디비 헬스체크: mongosh --quiet --eval "db.adminCommand(\"ping\").ok" -u root -p 1111 || exit 1
 
 volumes:
   mysql_data:
   mongo_data:
+
+networks:
+  backend-net:
