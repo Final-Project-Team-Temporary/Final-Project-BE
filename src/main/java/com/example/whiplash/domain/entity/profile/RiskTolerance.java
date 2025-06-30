@@ -1,5 +1,5 @@
-package com.example.whiplash.domain.entity.profile;
+package com.example.whiplash.user;
 
 public enum RiskTolerance {
-    HIGH, MEDIUM, LOW
+    STABLE, MODERATE, AGGRESSIVE
 }
