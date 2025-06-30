@@ -1,12 +1,16 @@
 package com.example.whiplash.config.security.jwt;
 
+import com.example.whiplash.config.properties.Constants;
+import com.example.whiplash.user.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -25,6 +29,17 @@ public class JwtTokenProvider {
 
     public String generateAccessToken(Authentication authentication) {
         return generateToken(authentication, jwtProperties.getAccessTokenExpiration());
+    }
+
+    public String generateTempToken(User user){
+        return Jwts.builder()
+                .setSubject(user.getEmail())
+                .claim("userId", user.getId())
+                .claim("status", user.getUserStatus())
+                .claim("authorities", "TEMP_USER")
+                .setExpiration(new Date(System.currentTimeMillis() + 5*60*1000))
+                .signWith(getSigningKey())
+                .compact();
     }
 
 
@@ -112,4 +127,13 @@ public class JwtTokenProvider {
         long fiveMinutes = 5 * 60 * 1000;
         return expiration.getTime() - now.getTime() < fiveMinutes;
     }
+
+    public String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader(Constants.AUTH_HEADER);
+        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(Constants.TOKEN_PREFIX)) {
+            return bearerToken.substring(Constants.TOKEN_PREFIX.length());
+        }
+        return null;
+    }
+
 }

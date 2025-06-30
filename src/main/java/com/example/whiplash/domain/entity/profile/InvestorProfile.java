@@ -24,33 +24,21 @@ import static lombok.AccessLevel.PROTECTED;
 @AllArgsConstructor
 @Builder
 public class InvestorProfile {
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
+
+    @Id @GeneratedValue(strategy = IDENTITY)
+    @Column(name = "investor_profile_id")
     private Long id;
 
     @Enumerated(STRING)
-    private InvestorType investorType;
+    private AgeRange ageRange;
+
+    @Enumerated(STRING)
+    private InvestmentLevel investmentLevel;
+
+    @Enumerated(STRING)
+    private InvestmentGoal investmentGoal;
 
     @Enumerated(STRING)
     private RiskTolerance riskTolerance;
 
-    private Integer investmentPeriod;
-
-    private Integer expectedReturn;
-
-    @Enumerated(value = STRING)
-    private ExperienceLevel experienceLevel;
-
-
-    @ElementCollection
-    @Enumerated(STRING)
-    @CollectionTable(name = "investor_profile_interest_categories",
-            joinColumns = @JoinColumn(name = "investor_profile_id"))
-    @Column(name = "interest_category")
-    private List<Category> interestCategories = new ArrayList<>();
-
-    // 단방향: Profile → User
-    @OneToOne(fetch = LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 }
