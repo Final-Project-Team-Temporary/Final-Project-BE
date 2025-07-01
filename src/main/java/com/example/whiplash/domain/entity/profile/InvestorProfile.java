@@ -41,4 +41,14 @@ public class InvestorProfile {
     @Enumerated(STRING)
     private RiskTolerance riskTolerance;
 
+    @ElementCollection
+    @Enumerated(STRING)
+    @CollectionTable(name = "investor_profile_interest_categories",
+            joinColumns = @JoinColumn(name = "investor_profile_id"))
+    @Column(name = "interest_category")
+    private List<Category> interestCategories = new ArrayList<>();
+
+    // 단방향: Profile → User
+    @OneToOne(mappedBy = "investorProfile")
+    private User user;
 }

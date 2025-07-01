@@ -45,7 +45,7 @@ public class User extends BaseEntity {
     @Enumerated(STRING)
     private SocialProvider socialProvider;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "investor_profile_id")
     private InvestorProfile investorProfile;
 

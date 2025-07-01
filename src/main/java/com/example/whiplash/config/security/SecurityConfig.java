@@ -33,7 +33,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(
                         (requests) -> requests
-                                .requestMatchers("/", "/api/auth/register", "/api/auth/login", "/swagger-ui/**",
+                                .requestMatchers("/", "/api/auth/register", "/api/auth/login","/api/auth/refresh", "/swagger-ui/**",
                                         "/v3/api-docs/**", "/login/page", "/callback", "/login/naver", "/loginNaver", "/naver.png", "/callback/naver").permitAll()
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/auth/profile-setup").hasRole("TEMP_USER")
