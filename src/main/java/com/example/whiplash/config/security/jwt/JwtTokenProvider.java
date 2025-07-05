@@ -42,6 +42,18 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public String generateTempSocialToken(User user){
+        return Jwts.builder()
+                .setSubject(user.getSocialProvider().name())
+                .claim("userId", user.getId())
+                .claim("kakaoId", user.getKakaoId())
+                .claim("status", user.getUserStatus())
+                .claim("authorities", "TEMP_USER")
+                .setExpiration(new Date(System.currentTimeMillis() + 5*60*1000))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
 
     public String generateRefreshToken(Authentication authentication) {
         return generateToken(authentication, jwtProperties.getRefreshTokenExpiration());

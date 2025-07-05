@@ -16,6 +16,7 @@ public enum ErrorStatus {
     DUPLICATE_EMAIL("4102", "이미 가입된 이메일입니다"),
     USER_ALREADY_ACTIVATED("U403", "이미 활성화된 사용자입니다."),
     USER_NOT_ACTIVATED("U404", "아직 활성화되지 않았거나 비활성화된 사용자입니다."),
+    USER_ALREADY_JOINED("U405", "이미 가입된 유저입니다."),
 
     // 검증 관련
     INVALID_INPUT("E201", "입력값이 올바르지 않습니다"),

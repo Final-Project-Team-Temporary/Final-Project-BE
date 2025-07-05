@@ -7,10 +7,7 @@ import com.example.whiplash.converter.AuthConverter;
 import com.example.whiplash.converter.UserConverter;
 import com.example.whiplash.user.User;
 import com.example.whiplash.user.UserStatus;
-import com.example.whiplash.user.dto.AuthResponse;
-import com.example.whiplash.user.dto.LoginRequestDTO;
-import com.example.whiplash.user.dto.TokenResponseDTO;
-import com.example.whiplash.user.dto.UserCreateDTO;
+import com.example.whiplash.user.dto.*;
 import com.example.whiplash.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +29,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
+    private final KakaoAuthService kakaoAuthService;
 
     @Transactional
-    public AuthResponse joinUser(UserCreateDTO userCreateDTO) {
+    public TokenResponseDTO joinUser(UserCreateDTO userCreateDTO) {
         Optional<User> user = userRepository.findByEmail(userCreateDTO.getEmail());
 
         if (user.isPresent()) {
@@ -49,7 +47,48 @@ public class AuthService {
 
         String tempToken = jwtTokenProvider.generateTempToken(newUser);
 
-        return AuthConverter.toAuthResponse(tempToken);
+        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING);
+    }
+
+    @Transactional
+    public TokenResponseDTO authenticateByKakao(String code){
+        String accessTokenFromKakao = kakaoAuthService.getAccessTokenFromKakao(code);
+        KakaoUserInfoResponseDTO userInfo = kakaoAuthService.getKakaoUserInfo(accessTokenFromKakao);
+
+        Optional<User> user = userRepository.findByKakaoId(userInfo.getId());
+
+        if (user.isPresent()) {
+            TokenResponseDTO tokenResponseDTO = loginByKakao(user.get());
+            return tokenResponseDTO;
+        }
+
+        User kakaoUser = UserConverter.toKakaoUser(userInfo);
+
+        userRepository.save(kakaoUser);
+
+        String tempToken = jwtTokenProvider.generateTempSocialToken(kakaoUser);
+        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING);
+    }
+
+    @Transactional
+    public TokenResponseDTO loginByKakao(User user) {
+
+        if(user.getUserStatus() == UserStatus.PENDING || user.getUserStatus() == UserStatus.INACTIVE) {
+            throw new WhiplashException(ErrorStatus.USER_NOT_ACTIVATED);
+        }
+
+        String userId = user.getSocialProvider().name() + "_" +  user.getKakaoId();
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(userId, null, Collections.singletonList(() -> user.getRole().name()));
+
+
+        String accessToken = jwtTokenProvider.generateAccessToken(authentication);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+
+        refreshTokenService.saveRefreshToken(refreshToken);
+
+        return AuthConverter.toTokenResponseDTO(accessToken, refreshToken, UserStatus.ACTIVE);
     }
 
     @Transactional
@@ -78,7 +117,7 @@ public class AuthService {
 
         refreshTokenService.saveRefreshToken(refreshToken);
 
-        return AuthConverter.toTokenResponseDTO(accessToken, refreshToken);
+        return AuthConverter.toTokenResponseDTO(accessToken, refreshToken, UserStatus.ACTIVE);
     }
 
     @Transactional
@@ -109,6 +148,7 @@ public class AuthService {
 
         refreshTokenService.saveRefreshToken(newRefreshToken);
 
-        return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken);
+        return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken, UserStatus.ACTIVE);
     }
+
 }

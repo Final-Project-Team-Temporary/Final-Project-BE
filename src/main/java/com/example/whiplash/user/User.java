@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.GenerationType.IDENTITY;
@@ -32,6 +33,8 @@ public class User extends BaseEntity {
     private String email;
 
     private String password;
+
+    private Long kakaoId;
 
     @Enumerated(STRING)
     private Role role;

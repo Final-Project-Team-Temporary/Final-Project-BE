@@ -57,7 +57,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "/api/public/**",
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
-                "/actuator/health"
+                "/actuator/health",
+                "/callback",
+                "/login/page",
+                "/kakao_login_medium_narrow.png",
         };
 
         return Arrays.stream(excludePaths)

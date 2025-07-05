@@ -18,14 +18,20 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody UserCreateDTO userCreateDTO) {
-        AuthResponse authResponse = authService.joinUser(userCreateDTO);
+    public ResponseEntity<ApiResponse<TokenResponseDTO>> register(@Valid @RequestBody UserCreateDTO userCreateDTO) {
+        TokenResponseDTO authResponse = authService.joinUser(userCreateDTO);
         return ResponseEntity.ok(ApiResponse.onSuccess(authResponse));
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<TokenResponseDTO>> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
         TokenResponseDTO tokenResponseDTO = authService.login(loginRequestDTO);
+        return ResponseEntity.ok(ApiResponse.onSuccess(tokenResponseDTO));
+    }
+
+    @PostMapping("/kakao-auth")
+    public ResponseEntity<ApiResponse<TokenResponseDTO>> authenticateByKakao(@RequestParam("code") String code) {
+        TokenResponseDTO tokenResponseDTO = authService.authenticateByKakao(code);
         return ResponseEntity.ok(ApiResponse.onSuccess(tokenResponseDTO));
     }
 

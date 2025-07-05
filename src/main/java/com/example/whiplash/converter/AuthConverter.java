@@ -6,17 +6,11 @@ import com.example.whiplash.user.dto.TokenResponseDTO;
 
 public class AuthConverter {
 
-    public static AuthResponse toAuthResponse(String token) {
-        return AuthResponse.builder()
-                .accessToken(token)
-                .userStatus(UserStatus.PENDING)
-                .build();
-    }
-
-    public static TokenResponseDTO toTokenResponseDTO(String accessToken, String refreshToken) {
+    public static TokenResponseDTO toTokenResponseDTO(String accessToken, String refreshToken, UserStatus userStatus) {
         return TokenResponseDTO.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .userStatus(userStatus)
                 .build();
     }
 }
