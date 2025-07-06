@@ -32,6 +32,17 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	// mysql
 	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+
+
+	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+	runtimeOnly 'com.h2database:h2'
 	// spring mongodb
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.4.0'
@@ -39,6 +50,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	//spring actuator
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	//validation
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	// lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -47,6 +60,13 @@ dependencies {
 
 	// dotenv
 	testImplementation 'io.github.cdimascio:dotenv-java:3.0.0'
+
+	// jwt
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
