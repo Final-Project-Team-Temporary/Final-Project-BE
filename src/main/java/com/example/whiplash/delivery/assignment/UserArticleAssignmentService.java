@@ -5,6 +5,7 @@ import com.example.whiplash.article.repository.UserArticleAssignmentRepository;
 import com.example.whiplash.domain.entity.history.email.EmailSendStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +20,8 @@ public class UserArticleAssignmentService {
     private final UserArticleAssignmentRepository assignmentRepository;
 
     // create
-//    @Scheduled(cron = "0 0 18 * * *", zone = "Asia/Seoul")
 //    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")   // TODO: 로컬 테스트용
+    @Scheduled(cron = "0 0 18 * * *", zone = "Asia/Seoul")
     @Transactional
     public void assign() {
         log.info("----사용자에게 기사 할당 작업: 시작");

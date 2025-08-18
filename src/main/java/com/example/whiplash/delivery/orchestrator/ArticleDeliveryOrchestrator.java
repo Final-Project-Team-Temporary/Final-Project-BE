@@ -5,6 +5,7 @@ import com.example.whiplash.delivery.assignment.UserArticleAssignmentService;
 import com.example.whiplash.delivery.email.EmailSendingService;
 import com.example.whiplash.domain.entity.history.email.EmailSendStatus;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.sql.ast.tree.update.Assignment;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,25 +26,38 @@ public class ArticleDeliveryOrchestrator {
         assignmentService.assign();
 
         // 2) 할당된 기사 요약 가져오기 (서브시스템/서비스로부터)
-        List<UserArticleAssignment> assignments = assignmentService.getArticleAssignmentsByStatus(EmailSendStatus.NEED_TO_SEND);
-        Map<Long, List<Long>> assignmentIdsByUser = assignments.stream()
+        List<UserArticleAssignment> assignmentsToSend = assignmentService.getArticleAssignmentsByStatus(EmailSendStatus.NEED_TO_SEND);
+        Map<Long, List<UserArticleAssignment>> assignmentsByUser = assignmentsToSend.stream()
                 .collect(Collectors.groupingBy(
                         assignment -> assignment.getUser().getId(),
-                        Collectors.mapping(assignment -> assignment.getId(), Collectors.toList())
+                        Collectors.mapping(assignment -> assignment, Collectors.toList())
                 ));
 
         // 3) 이메일 발송
-        Map<Long, List<String>> summaryIdsByUser = assignments.stream()
+        sendAssignedArticlesToUsers(assignmentsByUser);
+
+    }
+
+    private void sendAssignedArticlesToUsers(Map<Long, List<UserArticleAssignment>> userAssignmentsMap) {
+        userAssignmentsMap.forEach((userId, assignments) -> {
+            List<String> summaryIdsByUser = assignments.stream()
+                    .map(UserArticleAssignment::getSummarizedArticleId)
+                    .toList();
+            List<Long> assignmentIdsByUser = assignments.stream()
+                    .map(UserArticleAssignment::getId)
+                    .toList();
+            emailService.sendSummarizedArticlesToUser(userId, summaryIdsByUser);
+            assignmentService.updateAssignmentStatus(assignmentIdsByUser, EmailSendStatus.SENT);
+        });
+    }
+
+    private static Map<Long, List<String>> mapToSummarizedArticleIdListByUser(List<UserArticleAssignment> assignmentsToSend) {
+        Map<Long, List<String>> summaryIdsByUser = assignmentsToSend.stream()
                 .collect(Collectors.groupingBy(
                         assignment -> assignment.getUser().getId(), //userId로 그룹핑
                         Collectors.mapping(assignment -> assignment.getSummarizedArticleId(), Collectors.toList())  // 어떻게 그룹핑 할지
                 ));
-        summaryIdsByUser.forEach((userId, summaryIds) -> {
-                    emailService.sendSummarizedArticlesToUser(userId, summaryIds);                                      // 이메일 전송
-                    assignmentService.updateAssignmentStatus(assignmentIdsByUser.get(userId), EmailSendStatus.SENT);    //UserArticleAssignment 상태 변경
-                }
-        );
-
+        return summaryIdsByUser;
     }
     /** TODO
      * (옵션) 대량 트래픽 시 고려해볼 추가 최적화

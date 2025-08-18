@@ -1,0 +1,68 @@
+# .github/workflows/next-task-dispatch.yml
+name: Next Task (dispatch receiver)
+
+on:
+  repository_dispatch:
+    types: [kick-next-code, kick-next-docs]
+
+concurrency:
+  group: next-task-${{ github.event.client_payload.request_id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Idempotency guard (use request_id)
+        id: idem
+        run: |
+          REQUEST_ID='${{ github.event.client_payload.request_id || github.run_id }}'
+          BASE="$HOME/Desktop/open_the_door/lets_developing/project/whiplash/be/.github"
+          mkdir -p "$BASE/automation/$NS_SAFE"
+          HANDLED_FILE="$BASE/automation/$NS_SAFE/handled-requests.txt"
+          mkdir -p "$(dirname "$HANDLED_FILE")"
+          touch "$HANDLED_FILE"
+
+          if grep -qx "$REQUEST_ID" "$HANDLED_FILE"; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Already handled: $REQUEST_ID"
+          else
+            echo "$REQUEST_ID" >> "$HANDLED_FILE"
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "Marked handled: $REQUEST_ID"
+          fi
+
+      - name: Route by event_type and run OSA
+        if: steps.idem.outputs.skip == 'false'
+        env:
+          TYPE: ${{ github.event.action }} # event_type == kick-next-code/docs
+          PR_NUM: ${{ github.event.client_payload.pr_number }}
+          WORK_DIR: ${{ github.event.client_payload.work_dir }}
+          PROMPT_IN: ${{ github.event.client_payload.prompt }}
+        run: |
+          echo "event_type=$TYPE pr=$PR_NUM work_dir=$WORK_DIR"
+
+          case "$TYPE" in
+            kick-next-docs)
+              PROMPT="${PROMPT_IN:-/write-docs-and-publish ...}"
+              # 필요하면 다른 OSA 스크립트로 교체: scripts/next_task_docs_with_osa.sh
+              ;;
+            kick-next-code)
+              PROMPT="${PROMPT_IN:-/finish-subtasks-half-amount-of ...}"
+              ;;
+            *)
+              # 기본 라우트(원하지 않으면 exit 0)
+              PROMPT="${PROMPT_IN:-/finish-subtasks-half-amount-of ...}"
+              ;;
+          esac
+
+          # 인자:  WORK_DIR, PROMPT
+          if [[ ! -x ./scripts/next_task_with_osa.sh ]]; then
+            echo "Missing ./scripts/next_task_with_osa.sh (check out repository and path)."
+            exit 1
+          fi
+
+          ./.github/scripts/next_task_with_osa.sh "$WORK_DIR" "$PROMPT"
