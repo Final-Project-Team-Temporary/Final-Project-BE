@@ -1,0 +1,56 @@
+# .github/workflows/after-merge-dispatch.yml
+name: After PR Merge → Dispatch by Source Branch
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  dispatch-next:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Decide target by head ref and dispatch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}   # ex) feature/login, docs/api
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+    
+          echo "HEAD_REF=$HEAD_REF"
+          
+          case "$HEAD_REF" in
+          feature/*|bugfix/*|refactor/*|perf/*|test/*|chore/*)
+          EVENT_TYPE="kick-next-code"
+          # 코드 측 프롬프트
+          PROMPT="/auto-document 커스텀 명령어를 실행해"
+          ;;
+          docs/*|style/*)
+          EVENT_TYPE="kick-next-docs"
+          # 문서 측 프롬프트
+          PROMPT="/finish-subtasks-half-amount-of 커스텀 명령어를 실행해"
+          ;;
+          *)
+          echo "No matching prefix; skipping."; exit 0
+          ;;
+          esac
+          curl -sS -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/$REPO/dispatches \
+            -d @- <<JSON
+          {
+            "event_type": "${EVENT_TYPE}",
+            "client_payload": {
+              "request_id": "${HEAD_SHA}",
+              "pr_number": ${GITHUB_EVENT_PULL_REQUEST_NUMBER:-0},
+              "source_branch": "${HEAD_REF}",
+              "work_dir": "/Users/you/your-repo",
+              "prompt": "${PROMPT}"
+            }
+          }
+          JSON
