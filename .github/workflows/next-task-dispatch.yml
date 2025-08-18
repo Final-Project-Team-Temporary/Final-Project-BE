@@ -60,8 +60,8 @@ jobs:
           esac
 
           # 인자:  WORK_DIR, PROMPT
-          if [[ ! -x ./scripts/next_task_with_osa.sh ]]; then
-            echo "Missing ./scripts/next_task_with_osa.sh (check out repository and path)."
+          if [[ ! -x ./.github/scripts/next_task_with_osa.sh ]]; then
+            echo "Missing ./.github/scripts/next_task_with_osa.sh (check out repository and path)."
             exit 1
           fi
 
