@@ -1,11 +1,25 @@
 package com.example.whiplash.user.service;
 
 
+import com.example.whiplash.apiPayload.ErrorStatus;
+import com.example.whiplash.apiPayload.exception.WhiplashException;
+import com.example.whiplash.config.security.jwt.JwtTokenProvider;
+import com.example.whiplash.converter.AuthConverter;
+import com.example.whiplash.converter.InvestorProfileConverter;
+import com.example.whiplash.converter.UserConverter;
+import com.example.whiplash.domain.entity.profile.InvestorProfile;
+import com.example.whiplash.domain.repository.InvestorProfileRepository;
+import com.example.whiplash.user.Role;
 import com.example.whiplash.user.User;
 import com.example.whiplash.user.UserModifyRequestDTO;
+import com.example.whiplash.user.UserStatus;
+import com.example.whiplash.user.dto.AuthResponse;
+import com.example.whiplash.user.dto.ProfileRegisterDTO;
+import com.example.whiplash.user.dto.UserCreateDTO;
 import com.example.whiplash.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,40 +34,26 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    /** 새 사용자 생성 */
     @Transactional
-    public Long create(User user) {
-        return userRepository.save(user).getId();
-    }
+    public User registerProfile(ProfileRegisterDTO profileRegisterDTO, String userEmail) {
 
-    /** 단일 사용자 조회 */
-    public User findById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
-    }
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
-    /** 모든 사용자 조회 */
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
-
-    /** 사용자 정보 업데이트 */
-    @Transactional
-    public User update(UserModifyRequestDTO dto, Long userId) {
-        User findUser = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
-
-        findUser.update(dto);
-
-        return userRepository.save(findUser);
-    }
-
-    /** 사용자 삭제 */
-    @Transactional
-    public void delete(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new EntityNotFoundException("User not found with id: " + userId);
+        if(user.getUserStatus() != UserStatus.PENDING){
+            throw new WhiplashException(ErrorStatus.USER_ALREADY_ACTIVATED);
         }
-        userRepository.deleteById(userId);
+
+        user.activateUser();
+        user.updateRole(Role.getActiveUserRole());
+
+        InvestorProfile investorProfile = InvestorProfileConverter.toInvestorProfile(profileRegisterDTO);
+
+        user.setInvestorProfile(investorProfile);
+
+        return userRepository.save(user);
     }
+
+
+
 }

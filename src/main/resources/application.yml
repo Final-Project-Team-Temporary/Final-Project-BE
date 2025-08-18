@@ -22,6 +22,10 @@ spring:
       username: ${NOSQL_USERNAME}
       password: ${NOSQL_PASSWORD}
       authentication-database: ${NOSQL_AUTHENTICATION_DATABASE}
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      timeout: 2000ms
   mail:
     host: ${GMAIL_HOST}
     port: ${GMAIL_PORT}
@@ -42,8 +46,16 @@ management:
     health:
       show-details: never
 
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION}
+  issuer: ${JWT_ISSUER}
+
 
 logging:
   level:
     org.springframework.data.mongodb.core.MongoTemplate: DEBUG
     org.mongodb.driver.protocol.command: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
