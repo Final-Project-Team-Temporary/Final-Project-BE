@@ -1,5 +1,3 @@
 # Final-Project-BE
-# 기사 할당 및 이메일 전송 로그
-![asd](./demonstration/pic2.png)
-# email 전송 결과
-![as](./demonstration/pic3.png)
+### 아키텍처
+![인프라_다이어그램](https://github.com/user-attachments/assets/0a4a7867-b1d0-46c3-b001-37fc880619ce)
