@@ -1,11 +1,11 @@
 package com.example.whiplash.converter;
 
-import com.example.whiplash.user.Role;
-import com.example.whiplash.user.SocialProvider;
-import com.example.whiplash.user.User;
-import com.example.whiplash.user.UserStatus;
-import com.example.whiplash.user.dto.KakaoUserInfoResponseDTO;
-import com.example.whiplash.user.dto.UserCreateDTO;
+import com.example.whiplash.user.domain.Role;
+import com.example.whiplash.user.domain.SocialProvider;
+import com.example.whiplash.user.domain.User;
+import com.example.whiplash.user.domain.UserStatus;
+import com.example.whiplash.user.web.dto.response.KakaoUserInfoResponseDTO;
+import com.example.whiplash.user.web.dto.request.UserCreateDTO;
 
 public class UserConverter {
 

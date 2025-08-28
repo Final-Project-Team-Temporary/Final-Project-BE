@@ -9,7 +9,7 @@ import com.example.whiplash.domain.entity.history.email.EmailSendStatus;
 import com.example.whiplash.domain.entity.history.email.SummaryLevel;
 import com.example.whiplash.domain.repository.InvestorProfileRepository;
 import com.example.whiplash.domain.repository.UserKeywordRepository;
-import com.example.whiplash.user.User;
+import com.example.whiplash.user.domain.User;
 import com.example.whiplash.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

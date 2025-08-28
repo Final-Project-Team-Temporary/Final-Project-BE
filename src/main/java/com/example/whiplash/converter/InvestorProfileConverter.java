@@ -1,7 +1,7 @@
 package com.example.whiplash.converter;
 
-import com.example.whiplash.domain.entity.profile.InvestorProfile;
-import com.example.whiplash.user.dto.ProfileRegisterDTO;
+import com.example.whiplash.user.domain.profile.InvestorProfile;
+import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
 
 public class InvestorProfileConverter {
 
