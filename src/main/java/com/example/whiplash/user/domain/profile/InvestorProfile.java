@@ -1,8 +1,8 @@
-package com.example.whiplash.domain.entity.profile;
+package com.example.whiplash.user.domain.profile;
 
 
 import com.example.whiplash.article.document.Category;
-import com.example.whiplash.user.User;
+import com.example.whiplash.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static jakarta.persistence.EnumType.STRING;
-import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.*;
 import static lombok.AccessLevel.PROTECTED;
 

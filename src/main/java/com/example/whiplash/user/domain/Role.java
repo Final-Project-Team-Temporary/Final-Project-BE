@@ -1,4 +1,4 @@
-package com.example.whiplash.user;
+package com.example.whiplash.user.domain;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.example.whiplash.user;
+package com.example.whiplash.user.web.dto.request;
 
 import com.example.whiplash.domain.entity.history.email.SummaryLevel;
 import lombok.AllArgsConstructor;

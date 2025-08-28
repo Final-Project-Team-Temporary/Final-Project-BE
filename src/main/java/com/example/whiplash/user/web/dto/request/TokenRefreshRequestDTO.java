@@ -1,4 +1,4 @@
-package com.example.whiplash.user.dto;
+package com.example.whiplash.user.web.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

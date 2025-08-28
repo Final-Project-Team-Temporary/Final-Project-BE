@@ -1,7 +1,7 @@
 package com.example.whiplash.user.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
-import com.example.whiplash.user.dto.ProfileRegisterDTO;
+import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
 import com.example.whiplash.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

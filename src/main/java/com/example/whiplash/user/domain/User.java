@@ -1,14 +1,13 @@
-package com.example.whiplash.user;
+package com.example.whiplash.user.domain;
 
 import com.example.whiplash.domain.entity.BaseEntity;
 import com.example.whiplash.domain.entity.history.email.SummaryLevel;
-import com.example.whiplash.domain.entity.profile.InvestorProfile;
+import com.example.whiplash.user.domain.profile.InvestorProfile;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 
 import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.GenerationType.IDENTITY;

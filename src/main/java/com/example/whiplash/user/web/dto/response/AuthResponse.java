@@ -1,6 +1,6 @@
-package com.example.whiplash.user.dto;
+package com.example.whiplash.user.web.dto.response;
 
-import com.example.whiplash.user.UserStatus;
+import com.example.whiplash.user.domain.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

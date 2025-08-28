@@ -1,4 +1,4 @@
-package com.example.whiplash.user.dto;
+package com.example.whiplash.user.web.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

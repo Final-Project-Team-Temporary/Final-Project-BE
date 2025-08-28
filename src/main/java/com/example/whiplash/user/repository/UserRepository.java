@@ -1,6 +1,6 @@
 package com.example.whiplash.user.repository;
 
-import com.example.whiplash.user.User;
+import com.example.whiplash.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
