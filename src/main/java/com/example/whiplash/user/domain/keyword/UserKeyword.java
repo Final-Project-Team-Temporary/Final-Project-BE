@@ -1,4 +1,4 @@
-package com.example.whiplash.domain.entity;
+package com.example.whiplash.user.domain.keyword;
 
 import com.example.whiplash.user.domain.User;
 import jakarta.persistence.*;
@@ -28,4 +28,17 @@ public class UserKeyword {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "keyword_id", nullable = false)
     private Keyword keyword;
+
+    public static UserKeyword create(User user, Keyword keyword) {
+        return UserKeyword.builder()
+                .user(user)
+                .keyword(keyword)
+                .keywordName(keyword.getName())
+                .priority(0)
+                .build();
+    }
+
+    public void updatePriority(Integer priority) {
+        this.priority = priority;
+    }
 }

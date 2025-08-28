@@ -16,12 +16,12 @@ import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.GenerationType.*;
 import static lombok.AccessLevel.PROTECTED;
 
-@Entity
-@Table(name = "investor_profiles")
 @Getter
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor
 @Builder
+@Table(name = "investor_profiles")
+@Entity
 public class InvestorProfile {
 
     @Id @GeneratedValue(strategy = IDENTITY)
@@ -47,7 +47,24 @@ public class InvestorProfile {
     @Column(name = "interest_category")
     private List<Category> interestCategories = new ArrayList<>();
 
-    // 단방향: Profile → User
+    // 양방향: Profile → User
     @OneToOne(mappedBy = "investorProfile")
     private User user;
+
+    public static InvestorProfile create(User user,
+                                         AgeRange ageRange,
+                                         InvestmentLevel investmentLevel,
+                                         InvestmentGoal investmentGoal,
+                                         RiskTolerance riskTolerance,
+                                         List<Category> interestCategories
+    ) {
+        return InvestorProfile.builder()
+                .user(user)
+                .ageRange(ageRange)
+                .investmentLevel(investmentLevel)
+                .investmentGoal(investmentGoal)
+                .riskTolerance(riskTolerance)
+                .interestCategories(interestCategories)
+                .build();
+    }
 }

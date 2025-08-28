@@ -1,4 +1,4 @@
-package com.example.whiplash.domain.entity;
+package com.example.whiplash.user.domain.keyword;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,5 +18,11 @@ public class Keyword {
     private Long id;
 
     private String name;
+
+    public static Keyword create(String name) {
+        return Keyword.builder()
+                .name(name)
+                .build();
+    }
 }
 
