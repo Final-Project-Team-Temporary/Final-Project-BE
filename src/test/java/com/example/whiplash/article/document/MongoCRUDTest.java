@@ -1,5 +1,6 @@
 package com.example.whiplash.article.document;
 
+import com.example.whiplash.IntegrationTestSupport;
 import com.example.whiplash.article.repository.ArticleRepository;
 import com.example.whiplash.article.repository.SummarizedArticleRepository;
 import com.example.whiplash.domain.entity.history.email.SummaryLevel;
@@ -23,10 +24,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-@ActiveProfiles("test")
 //@DataMongoTest
-@SpringBootTest
-public class MongoCRUDTest {
+public class MongoCRUDTest extends IntegrationTestSupport {
     @Autowired
     private ArticleRepository articleRepository;
     @Autowired
