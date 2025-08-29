@@ -1,4 +1,4 @@
-package com.example.whiplash.user.repository;
+package com.example.whiplash.user.repository.user;
 
 import com.example.whiplash.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
