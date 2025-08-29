@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Optional;
+
 import static com.example.whiplash.user.domain.profile.AgeRange.TWENTIES;
 import static com.example.whiplash.user.domain.profile.InvestmentGoal.EDUCATION_FUND;
 import static com.example.whiplash.user.domain.profile.InvestmentLevel.BEGINNER;
@@ -48,7 +50,7 @@ class UserServiceTest extends IntegrationTestSupport {
                 .build();
 
         //when
-        User registeredUser = userService.registerProfile(profileRegisterDTO, email);
+        User registeredUser = userService.registerProfile(profileRegisterDTO, Optional.of(email));
 
         //then
         assertThat(registeredUser).isNotNull()

@@ -65,7 +65,7 @@ class ArticleAssignerV1Test extends IntegrationTestSupport {
         // given
         User user = saveUser();
         user.updateSummaryLevel(SummaryLevel.SHORT);
-        registerUserProfile(userEmail, List.of(Category.GOLD));
+        registerUserProfile(Optional.of(userEmail), List.of(Category.GOLD));
         registerKeywords(new UserKeywordCreateRequest("비트코인"));
         registerKeywords(new UserKeywordCreateRequest("달러"));
 
@@ -88,7 +88,7 @@ class ArticleAssignerV1Test extends IntegrationTestSupport {
         // given
         User user = saveUser();
         user.updateSummaryLevel(SummaryLevel.SHORT);
-        registerUserProfile(userEmail, List.of(Category.GOLD));
+        registerUserProfile(Optional.of(userEmail), List.of(Category.GOLD));
         registerKeywords(new UserKeywordCreateRequest("비트코인"));
         registerKeywords(new UserKeywordCreateRequest("달러"));
 
@@ -122,7 +122,7 @@ class ArticleAssignerV1Test extends IntegrationTestSupport {
         userService.createUserKeyword(keywordCreateRequest, Optional.of(userEmail));
     }
 
-    private User registerUserProfile(String mail, List<Category> interestCategories) {
+    private User registerUserProfile(Optional<String> mail, List<Category> interestCategories) {
         return userService.registerProfile(
                 ProfileRegisterDTO.builder()
                         .ageRange(AgeRange.TWENTIES)
