@@ -1,5 +1,6 @@
 package com.example.whiplash.user.web.dto.request;
 
+import com.example.whiplash.article.document.Category;
 import com.example.whiplash.user.domain.profile.AgeRange;
 import com.example.whiplash.user.domain.profile.InvestmentGoal;
 import com.example.whiplash.user.domain.profile.InvestmentLevel;
@@ -7,6 +8,9 @@ import com.example.whiplash.user.domain.profile.RiskTolerance;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.List;
+
 @Builder
 @Getter
 public class ProfileRegisterDTO {
@@ -22,4 +26,6 @@ public class ProfileRegisterDTO {
     @NotNull(message = "투자 목적은 필수입니다")
     private InvestmentGoal investmentGoal;
 
+    @NotNull(message = "관심 카테고리는 필수입니다")
+    private List<Category> interestCategories;
 }
