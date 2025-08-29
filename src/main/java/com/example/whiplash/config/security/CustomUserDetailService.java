@@ -1,7 +1,7 @@
 package com.example.whiplash.config.security;
 
 import com.example.whiplash.user.domain.User;
-import com.example.whiplash.user.repository.UserRepository;
+import com.example.whiplash.user.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

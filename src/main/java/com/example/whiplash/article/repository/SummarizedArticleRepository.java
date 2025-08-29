@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface SummarizedArticleRepository extends MongoRepository<SummarizedArticle, String> {
 
-    List<SummarizedArticle> findAllByPublishedAtAfter(LocalDateTime publishedAtAfter);
+    List<SummarizedArticle> findAllByPublishedAtGreaterThanEqual(LocalDateTime publishedAtIsGreaterThan);
 }

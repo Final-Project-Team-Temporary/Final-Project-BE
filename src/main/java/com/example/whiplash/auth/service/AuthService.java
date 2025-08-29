@@ -7,7 +7,7 @@ import com.example.whiplash.converter.AuthConverter;
 import com.example.whiplash.converter.UserConverter;
 import com.example.whiplash.user.domain.User;
 import com.example.whiplash.user.domain.UserStatus;
-import com.example.whiplash.user.repository.UserRepository;
+import com.example.whiplash.user.repository.user.UserRepository;
 import com.example.whiplash.user.web.dto.response.KakaoUserInfoResponseDTO;
 import com.example.whiplash.user.web.dto.request.LoginRequestDTO;
 import com.example.whiplash.user.web.dto.response.TokenResponseDTO;

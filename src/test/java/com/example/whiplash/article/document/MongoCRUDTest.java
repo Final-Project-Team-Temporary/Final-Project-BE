@@ -44,12 +44,8 @@ public class MongoCRUDTest extends IntegrationTestSupport {
         Article saved = articleRepository.save(a);
 
         // 1) 생성
-        SummarizedArticle sa = SummarizedArticle.builder()
-                .originalArticleId("abc")
-                .summarizedContent("요약 내용")
-                .summaryLevel(SummaryLevel.SHORT)
-                .summarizedAt(LocalDateTime.now())
-                .build();
+        LocalDateTime dateTime = LocalDateTime.of(2025, 5, 1, 1, 0, 0);
+        SummarizedArticle sa = createSummarizedArticle(dateTime, dateTime);
         SummarizedArticle summary = summarizedArticleRepository.save(sa);
         assertThat(summary.getId()).isNotNull();
 
@@ -96,12 +92,8 @@ public class MongoCRUDTest extends IntegrationTestSupport {
     @DisplayName("SummarizedArticle 기본 CRUD 동작 확인")
     void summarizedArticleCrud() {
         // 1) 생성
-        SummarizedArticle sa = SummarizedArticle.builder()
-                .originalArticleId("orig-123")
-                .summarizedContent("요약 내용")
-                .summaryLevel(SummaryLevel.SHORT)
-                .summarizedAt(LocalDateTime.now())
-                .build();
+        LocalDateTime dateTime = LocalDateTime.of(2025, 5, 1, 1, 0, 0);
+        SummarizedArticle sa = createSummarizedArticle(dateTime, dateTime);
         SummarizedArticle saved = summarizedArticleRepository.save(sa);
         assertThat(saved.getId()).isNotNull();
 
@@ -112,5 +104,17 @@ public class MongoCRUDTest extends IntegrationTestSupport {
         // 3) 삭제
         summarizedArticleRepository.delete(saved);
         assertThat(summarizedArticleRepository.findById(saved.getId())).isEmpty();
+    }
+
+    private static SummarizedArticle createSummarizedArticle(LocalDateTime summarizedAt, LocalDateTime publishedAt) {
+        SummarizedArticle summary = SummarizedArticle.create("1",
+                "하늘이 솟아오르다",
+                Category.GOLD,
+                "오늘 하늘이 솟아올랐다는 아주 놀라운 보고가 있다는데요. 맞나요 선생님.",
+                SummaryLevel.SHORT,
+                summarizedAt,
+                publishedAt
+        );
+        return summary;
     }
 }

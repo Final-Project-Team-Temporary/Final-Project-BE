@@ -1,6 +1,6 @@
 package com.example.whiplash.delivery.email;
 
-import com.example.whiplash.user.repository.UserRepository;
+import com.example.whiplash.user.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

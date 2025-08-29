@@ -12,11 +12,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
-@Document(collection = "summarized_articles")
-@Getter @Setter
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder(access = AccessLevel.PRIVATE)
+@Document(collection = "summarized_articles")
 public class SummarizedArticle {
     @Id
     private String id;
@@ -36,4 +36,21 @@ public class SummarizedArticle {
 
     private LocalDateTime publishedAt;
 
+    public static SummarizedArticle create(String originalArticleId,
+                                           String title,
+                                           Category category,
+                                           String summarizedContent,
+                                           SummaryLevel summaryLevel,
+                                           LocalDateTime summarizedAt,
+                                           LocalDateTime publishedAt) {
+        return SummarizedArticle.builder()
+                .originalArticleId(originalArticleId)
+                .title(title)
+                .category(category)
+                .summarizedContent(summarizedContent)
+                .summaryLevel(summaryLevel)
+                .summarizedAt(summarizedAt)
+                .publishedAt(publishedAt)
+                .build();
+    }
 }

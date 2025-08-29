@@ -2,21 +2,14 @@ package com.example.whiplash.user.service;
 
 import com.example.whiplash.IntegrationTestSupport;
 import com.example.whiplash.auth.service.AuthService;
-import com.example.whiplash.user.domain.profile.AgeRange;
-import com.example.whiplash.user.domain.profile.InvestmentGoal;
-import com.example.whiplash.user.domain.profile.InvestmentLevel;
-import com.example.whiplash.user.domain.profile.RiskTolerance;
 import com.example.whiplash.user.domain.User;
 import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
-import com.example.whiplash.user.repository.UserRepository;
+import com.example.whiplash.user.repository.user.UserRepository;
 import com.example.whiplash.user.web.dto.request.UserCreateDTO;
 import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.whiplash.user.domain.profile.AgeRange.TWENTIES;
 import static com.example.whiplash.user.domain.profile.InvestmentGoal.EDUCATION_FUND;
