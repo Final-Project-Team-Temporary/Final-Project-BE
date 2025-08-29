@@ -2,7 +2,7 @@ package com.example.whiplash.auth.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
 import com.example.whiplash.auth.service.AuthService;
-import com.example.whiplash.user.dto.TokenResponseDTO;
+import com.example.whiplash.user.web.dto.response.TokenResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

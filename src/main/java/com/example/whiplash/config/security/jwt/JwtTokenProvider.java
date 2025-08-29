@@ -1,7 +1,7 @@
 package com.example.whiplash.config.security.jwt;
 
 import com.example.whiplash.config.properties.Constants;
-import com.example.whiplash.user.User;
+import com.example.whiplash.user.domain.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;

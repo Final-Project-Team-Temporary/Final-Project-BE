@@ -2,7 +2,10 @@ package com.example.whiplash.auth.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
 import com.example.whiplash.auth.service.AuthService;
-import com.example.whiplash.user.dto.*;
+import com.example.whiplash.user.web.dto.request.LoginRequestDTO;
+import com.example.whiplash.user.web.dto.request.TokenRefreshRequestDTO;
+import com.example.whiplash.user.web.dto.response.TokenResponseDTO;
+import com.example.whiplash.user.web.dto.request.UserCreateDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

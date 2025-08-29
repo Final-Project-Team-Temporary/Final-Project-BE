@@ -1,7 +1,7 @@
 package com.example.whiplash.auth.service;
 
-import com.example.whiplash.user.dto.KakaoTokenResponseDTO;
-import com.example.whiplash.user.dto.KakaoUserInfoResponseDTO;
+import com.example.whiplash.user.web.dto.response.KakaoTokenResponseDTO;
+import com.example.whiplash.user.web.dto.response.KakaoUserInfoResponseDTO;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Slf4j
 public class KakaoAuthService {
-    @Value("${kakao.client_id}")
+    @Value("${kakao.client-id}")
     private String kakaoClientId;
 
     private final String KAUTH_TOKEN_URL_HOST = "https://kauth.kakao.com";

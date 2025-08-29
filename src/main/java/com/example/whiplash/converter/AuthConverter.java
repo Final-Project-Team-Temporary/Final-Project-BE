@@ -1,8 +1,7 @@
 package com.example.whiplash.converter;
 
-import com.example.whiplash.user.UserStatus;
-import com.example.whiplash.user.dto.AuthResponse;
-import com.example.whiplash.user.dto.TokenResponseDTO;
+import com.example.whiplash.user.domain.UserStatus;
+import com.example.whiplash.user.web.dto.response.TokenResponseDTO;
 
 public class AuthConverter {
 

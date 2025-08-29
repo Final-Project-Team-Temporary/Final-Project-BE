@@ -1,7 +1,8 @@
 package com.example.whiplash.user.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
-import com.example.whiplash.user.dto.ProfileRegisterDTO;
+import com.example.whiplash.global.util.SecurityContextUtils;
+import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
 import com.example.whiplash.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
@@ -23,11 +26,9 @@ public class UserController {
     @PostMapping("/profile-setup")
     public ResponseEntity<ApiResponse<?>> profileSetup(@Valid @RequestBody ProfileRegisterDTO profileRegisterDTO) {
 
+        Optional<String> optionalEmail = SecurityContextUtils.getCurrentUserEmail();
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName();
-
-        userService.registerProfile(profileRegisterDTO, userEmail);
+        userService.registerProfile(profileRegisterDTO, optionalEmail);
         return ResponseEntity.ok(ApiResponse.onCreated(null));
     }
 }

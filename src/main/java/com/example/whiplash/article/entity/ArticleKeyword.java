@@ -1,6 +1,6 @@
 package com.example.whiplash.article.entity;
 
-import com.example.whiplash.domain.entity.Keyword;
+import com.example.whiplash.user.domain.keyword.Keyword;
 import jakarta.persistence.*;
 import lombok.*;
 

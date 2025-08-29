@@ -3,27 +3,22 @@ package com.example.whiplash.user.service;
 
 import com.example.whiplash.apiPayload.ErrorStatus;
 import com.example.whiplash.apiPayload.exception.WhiplashException;
-import com.example.whiplash.config.security.jwt.JwtTokenProvider;
-import com.example.whiplash.converter.AuthConverter;
 import com.example.whiplash.converter.InvestorProfileConverter;
-import com.example.whiplash.converter.UserConverter;
-import com.example.whiplash.domain.entity.profile.InvestorProfile;
-import com.example.whiplash.domain.repository.InvestorProfileRepository;
-import com.example.whiplash.user.Role;
-import com.example.whiplash.user.User;
-import com.example.whiplash.user.UserModifyRequestDTO;
-import com.example.whiplash.user.UserStatus;
-import com.example.whiplash.user.dto.AuthResponse;
-import com.example.whiplash.user.dto.ProfileRegisterDTO;
-import com.example.whiplash.user.dto.UserCreateDTO;
-import com.example.whiplash.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.example.whiplash.user.domain.keyword.Keyword;
+import com.example.whiplash.user.domain.keyword.UserKeyword;
+import com.example.whiplash.user.domain.profile.InvestorProfile;
+import com.example.whiplash.user.domain.Role;
+import com.example.whiplash.user.domain.User;
+import com.example.whiplash.user.domain.UserStatus;
+import com.example.whiplash.user.repository.keyword.KeywordRepository;
+import com.example.whiplash.user.repository.keyword.UserKeywordRepository;
+import com.example.whiplash.user.web.dto.UserKeywordCreateRequest;
+import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
+import com.example.whiplash.user.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 
@@ -33,11 +28,14 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final KeywordRepository keywordRepository;
+    private final UserKeywordRepository userKeywordRepository;
 
     @Transactional
-    public User registerProfile(ProfileRegisterDTO profileRegisterDTO, String userEmail) {
+    public User registerProfile(ProfileRegisterDTO profileRegisterDTO, Optional<String> userEmail) {
+        checkUserIsAuthenticated(userEmail);
 
-        User user = userRepository.findByEmail(userEmail)
+        User user = userRepository.findByEmail(userEmail.get())
                 .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
         if(user.getUserStatus() != UserStatus.PENDING){
@@ -47,13 +45,32 @@ public class UserService {
         user.activateUser();
         user.updateRole(Role.getActiveUserRole());
 
-        InvestorProfile investorProfile = InvestorProfileConverter.toInvestorProfile(profileRegisterDTO);
-
+        InvestorProfile investorProfile = InvestorProfileConverter.toInvestorProfile(profileRegisterDTO, user);
         user.setInvestorProfile(investorProfile);
 
         return userRepository.save(user);
     }
 
+    @Transactional
+    public void createUserKeyword(UserKeywordCreateRequest request, Optional<String> currentUserEmail) {
+        checkUserIsAuthenticated(currentUserEmail);
+        User user = userRepository.findByEmail(currentUserEmail.get())
+                .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
+
+        Optional<Keyword> optionalKeyword = keywordRepository.findByName(request.keyword());
+        if (optionalKeyword.isPresent()) {
+            userKeywordRepository.save(UserKeyword.create(user, optionalKeyword.get()));
+        } else {
+            Keyword keyword = keywordRepository.save(Keyword.create(request.keyword()));
+            userKeywordRepository.save(UserKeyword.create(user, keyword));
+        }
+    }
+
+    private static void checkUserIsAuthenticated(Optional<String> currentUserEmail) {
+        if (currentUserEmail.isEmpty()) {
+            throw new WhiplashException(ErrorStatus.UNAUTHORIZED);
+        }
+    }
 
 
 }

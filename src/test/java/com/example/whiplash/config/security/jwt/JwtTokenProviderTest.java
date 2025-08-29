@@ -1,5 +1,7 @@
 package com.example.whiplash.config.security.jwt;
 
+import com.example.whiplash.IntegrationTestSupport;
+import com.example.whiplash.POJOTestSupport;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,7 +14,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class JwtTokenProviderTest {
+class JwtTokenProviderTest extends POJOTestSupport {
 
     private JwtTokenProvider jwtTokenProvider;
     private JwtProperties jwtProperties;
@@ -20,6 +22,10 @@ class JwtTokenProviderTest {
     @BeforeEach
     void setUp() {
         jwtProperties = new JwtProperties();
+        jwtProperties.setSecret(System.getProperty("JWT_SECRET"));
+        jwtProperties.setAccessTokenExpiration(Long.valueOf(System.getProperty("JWT_ACCESS_EXPIRATION")));
+        jwtProperties.setRefreshTokenExpiration(Long.valueOf(System.getProperty("JWT_REFRESH_EXPIRATION")));
+        jwtProperties.setIssuer(System.getProperty("JWT_ISSUER"));
         jwtTokenProvider = new JwtTokenProvider(jwtProperties);
     }
 
