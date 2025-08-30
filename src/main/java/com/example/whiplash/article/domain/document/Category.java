@@ -1,4 +1,4 @@
-package com.example.whiplash.article.document;
+package com.example.whiplash.article.domain.document;
 
 import lombok.Getter;
 

@@ -1,11 +1,10 @@
 package com.example.whiplash.delivery.orchestrator;
 
-import com.example.whiplash.article.entity.UserArticleAssignment;
+import com.example.whiplash.article.domain.entity.UserArticleAssignment;
 import com.example.whiplash.delivery.assignment.UserArticleAssignmentService;
 import com.example.whiplash.delivery.email.EmailSendingService;
 import com.example.whiplash.domain.entity.history.email.EmailSendStatus;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.ast.tree.update.Assignment;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

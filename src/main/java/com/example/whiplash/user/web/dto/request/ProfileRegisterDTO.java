@@ -1,6 +1,6 @@
 package com.example.whiplash.user.web.dto.request;
 
-import com.example.whiplash.article.document.Category;
+import com.example.whiplash.article.domain.document.Category;
 import com.example.whiplash.user.domain.profile.AgeRange;
 import com.example.whiplash.user.domain.profile.InvestmentGoal;
 import com.example.whiplash.user.domain.profile.InvestmentLevel;
