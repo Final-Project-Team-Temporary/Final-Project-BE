@@ -1,9 +1,9 @@
 package com.example.whiplash.delivery.assignment;
 
 import com.example.whiplash.IntegrationTestSupport;
-import com.example.whiplash.article.document.Category;
-import com.example.whiplash.article.document.SummarizedArticle;
-import com.example.whiplash.article.entity.UserArticleAssignment;
+import com.example.whiplash.article.domain.document.Category;
+import com.example.whiplash.article.domain.document.SummarizedArticle;
+import com.example.whiplash.article.domain.entity.UserArticleAssignment;
 import com.example.whiplash.article.repository.ArticleRepository;
 import com.example.whiplash.article.repository.SummarizedArticleRepository;
 import com.example.whiplash.article.repository.UserArticleAssignmentRepository;
@@ -61,7 +61,7 @@ class ArticleAssignerV1Test extends IntegrationTestSupport {
 
     @DisplayName("24시간 내에 출간됐지만 조건에 맞는 요약문이 없다면 하나도 할당되지 않는다.")
     @Test
-    public void should_hasSize_0_when_filtered_everySummary() {
+    public void should_hasSize_0_when_condition_mathced_nothing() {
         // given
         User user = saveUser();
         user.updateSummaryLevel(SummaryLevel.SHORT);
@@ -84,7 +84,7 @@ class ArticleAssignerV1Test extends IntegrationTestSupport {
 
     @DisplayName("24시간 내에 출간된 조건에 맞는 요약문은 할당된다.")
     @Test
-    public void should_hasSize_2_when_filtered_everySummary() {
+    public void should_hasSize_2_when_condition_matched() {
         // given
         User user = saveUser();
         user.updateSummaryLevel(SummaryLevel.SHORT);
