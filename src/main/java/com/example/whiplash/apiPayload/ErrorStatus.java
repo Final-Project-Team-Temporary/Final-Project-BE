@@ -22,6 +22,14 @@ public enum ErrorStatus {
     INVALID_INPUT("E201", "입력값이 올바르지 않습니다"),
     VALIDATION_FAILED("E202", "데이터 검증에 실패했습니다"),
     
+    // 기사 메타정보 관련
+    ARTICLE_META_ALREADY_EXISTS("A301", "기사 메타정보가 이미 존재합니다"),
+    ARTICLE_META_NOT_FOUND("A302", "기사 메타정보를 찾을 수 없습니다"),
+    INVALID_ARTICLE_ID("A303", "유효하지 않은 기사 ID입니다"),
+    INVALID_ARTICLE_TITLE("A304", "유효하지 않은 기사 제목입니다"),
+    INVALID_ARTICLE_SOURCE("A305", "유효하지 않은 기사 출처입니다"),
+    INVALID_ARTICLE_URL("A306", "유효하지 않은 기사 URL입니다"),
+    
     // 시스템 관련
     INTERNAL_SERVER_ERROR("E999", "서버 내부 오류가 발생했습니다");
 
