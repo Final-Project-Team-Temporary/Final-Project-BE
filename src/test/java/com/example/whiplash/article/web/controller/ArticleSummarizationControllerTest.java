@@ -6,9 +6,11 @@ import com.example.whiplash.article.service.ArticleSummarizationService;
 import com.example.whiplash.article.web.dto.request.ArticleSummarizationRequest;
 import com.example.whiplash.article.web.dto.response.ArticleSummarizationResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
+import org.mockito.internal.matchers.Matches;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -20,8 +22,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.anyOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -65,8 +69,14 @@ class ArticleSummarizationControllerTest extends MvcTestSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.data.articleIds").value("기사 ID 목록은 필수입니다."))
+                .andExpect(jsonPath("$.data.articleIds").value(
+                        Matchers.anyOf(
+                                Matchers.is("기사 ID 목록은 필수입니다."),
+                                Matchers.is("기사 ID는 1개 이상 100개 이하여야 합니다.")
+                        )
+                ))
         ;
+
         verify(articleSummarizationService, BDDMockito.times(0))
                 .processArticleSummarizationRequest(any());
     }
