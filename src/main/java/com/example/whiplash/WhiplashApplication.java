@@ -8,7 +8,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @SpringBootApplication
-@EnableJpaAuditing
 public class WhiplashApplication {
 
     public static void main(String[] args) {
