@@ -14,10 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +24,7 @@ public class ArticleSummarizationService {
 
     private final ArticleRepository articleRepository;
 
-    // 임시 작업 상태 저장소 (실제 구현에서는 Redis 사용 예정)
-    private final Map<String, SummarizationJobStatusDTO> jobStatusStorage = new ConcurrentHashMap<>();
+    private final ArticleTaskProducer articleTaskProducer;
 
     @Transactional
     public ArticleSummarizationResponse processArticleSummarizationRequest(ArticleSummarizationRequest request) {
@@ -38,7 +34,7 @@ public class ArticleSummarizationService {
 
         // 1. 작업 큐 등록
         for (String articleId : request.getArticleIds()) {
-            registerArticleToTaskQueue(articleId, registerInfo);
+            registerArticleToTaskQueue(articleId, registerInfo, LocalDateTime.now());
         }
 
         // 2. 응답 생성
@@ -49,14 +45,14 @@ public class ArticleSummarizationService {
                 registerInfo,
                 String.format("총 %d개 중 %d개 성공적으로 처리됨 (메타데이터 저장 후 큐 등록)",
                         request.getArticleIds().size(), registerInfo.processedArticleIds().size()));
-        
+
         log.info("크롤러 메타데이터 포함 요약 요청 처리 완료: processed={}, failed={}",
                 registerInfo.processedArticleIds().size(), registerInfo.failedIds().size());
 
         return response;
     }
 
-    private void registerArticleToTaskQueue(String articleId, ArticleRegisterInfo registerInfo) {
+    private void registerArticleToTaskQueue(String articleId, ArticleRegisterInfo registerInfo, LocalDateTime registeredAt) {
         List<String> processedArticleIds = registerInfo.processedArticleIds();
         List<String> failedIds = registerInfo.failedIds();
         List<String> jobIds = registerInfo.jobIds();
@@ -71,27 +67,12 @@ public class ArticleSummarizationService {
                 article.setSummaryStatus(SummaryStatus.ENQUEUED);
                 articleRepository.save(article);
 
-                // 1-3. Redis 큐에 작업 등록 (현재는 임시 구현)
-                String jobId = UUID.randomUUID().toString();
-
-                // 임시 작업 상태 저장
-                SummarizationJobStatusDTO jobStatus = SummarizationJobStatusDTO.builder()
-                        .jobId(jobId)
-                        .articleId(articleId)
-                        .status("ENQUEUED")
-                        .createdAt(LocalDateTime.now())
-                        .updatedAt(LocalDateTime.now())
-                        .attempts(0)
-                        .errorMessage(null)
-                        .build();
-
-                jobStatusStorage.put(jobId, jobStatus);
+                String jobId = articleTaskProducer.produce(articleId, registeredAt);
 
                 processedArticleIds.add(articleId);
                 jobIds.add(jobId);
 
                 log.debug("Article 상태 업데이트 및 큐 등록 완료: articleId={}, jobId={}", articleId, jobId);
-
             } else {
                 log.warn("존재하지 않는 Article ID (메타데이터는 저장됨): {}", articleId);
                 // 메타데이터는 저장되었지만 MongoDB Article이 없는 경우
@@ -105,10 +86,11 @@ public class ArticleSummarizationService {
         }
     }
 
+    // TODO: not finished yet
     public SummarizationJobStatusDTO getJobStatus(String jobId) {
         log.info("작업 상태 조회: jobId={}", jobId);
 
-        SummarizationJobStatusDTO status = jobStatusStorage.get(jobId);
+        SummarizationJobStatusDTO status = null;
 
         if (status == null) {
             log.warn("존재하지 않는 작업 ID: {}", jobId);
