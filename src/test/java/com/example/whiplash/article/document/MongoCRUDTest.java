@@ -1,6 +1,7 @@
 package com.example.whiplash.article.document;
 
 import com.example.whiplash.IntegrationTestSupport;
+import com.example.whiplash.MongoTestSupport;
 import com.example.whiplash.article.domain.document.Article;
 import com.example.whiplash.article.domain.document.Category;
 import com.example.whiplash.article.domain.document.SummarizedArticle;
@@ -27,22 +28,12 @@ import java.util.stream.Stream;
 import static com.example.whiplash.article.domain.document.SummaryStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Slf4j
-//@DataMongoTest
-public class MongoCRUDTest extends IntegrationTestSupport {
+public class MongoCRUDTest extends MongoTestSupport {
     @Autowired
     private ArticleRepository articleRepository;
     @Autowired
     private SummarizedArticleRepository summarizedArticleRepository;
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
-    @AfterEach
-    void cleanUp() {
-        //모든 Collection 초기화
-        mongoTemplate.getDb().drop();
-    }
 
     @DisplayName("기사를 생성하고 저장한다.")
     @Test
@@ -133,7 +124,7 @@ public class MongoCRUDTest extends IntegrationTestSupport {
         assertThat(articleList.size()).isEqualTo(size);
     }
 
-    private Stream<Arguments> provideSummaryStatusAndResult() {
+    static private Stream<Arguments> provideSummaryStatusAndResult() {
         List<Article> articles = Arrays.asList(
                 createArticleWithStatus("기사1", BEFORE_ENQUEUED),
                 createArticleWithStatus("기사2", ENQUEUED),
@@ -160,7 +151,7 @@ public class MongoCRUDTest extends IntegrationTestSupport {
                 ));
     }
 
-    private Article createArticleWithStatus(String title, SummaryStatus status) {
+    static private Article createArticleWithStatus(String title, SummaryStatus status) {
         return Article.builder()
                 .title(title)
                 .content("테스트용 기사 본문 내용")

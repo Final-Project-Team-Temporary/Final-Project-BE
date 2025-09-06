@@ -12,20 +12,28 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.example.whiplash.article.domain.document.SummaryStatus.BEFORE_ENQUEUED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 
 class ArticleSummarizationServiceTest extends IntegrationTestSupport {
     @Autowired
     private ArticleSummarizationService articleSummarizationService;
     @Autowired
     private ArticleRepository articleRepository;
+    @MockitoBean
+    private ArticleTaskProducer articleTaskProducer;
 
     @AfterEach
     void tearDown() {
@@ -36,6 +44,9 @@ class ArticleSummarizationServiceTest extends IntegrationTestSupport {
     @MethodSource("provideArticles")
     @ParameterizedTest
     public void should_add_article_id_to_queue_when_crawl_complete (List<Article> articles, List<String> articleIds, boolean result, int size) {
+        // stubbing
+        given(articleTaskProducer.produce(anyString(), any()))
+                .willReturn(UUID.randomUUID().toString());
         // given
         articleRepository.saveAll(articles);
         ArticleSummarizationRequest request = createArticleSummarizationRequest(articleIds);
@@ -86,6 +97,9 @@ class ArticleSummarizationServiceTest extends IntegrationTestSupport {
     @DisplayName("존재하지 않는 기사 ID를 제공하면 작업큐에 등록할 때 실패한 ID 목록으로 포함된다")
     @Test
     public void should_contain_failed_id_when_provide_not_exist_article_id () {
+        // stubbing
+        given(articleTaskProducer.produce(anyString(), any()))
+                .willReturn(UUID.randomUUID().toString());
         // given
         ArticleSummarizationRequest request = createArticleSummarizationRequest(List.of("1"));
 
