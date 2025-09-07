@@ -75,7 +75,11 @@ jobs:
 
       - name: Create ECS env json
         run: |
-          ENV_VARS=$(cat .env | grep -v '^#' | sed '/^$/d' | jq -Rn '[inputs|split("=")|{name:.[0],value:.[1]}]')
+          ENV_VARS=$(cat .env \
+          | sed 's/^[[:space:]]*#.*$//' \       # 공백 + # 로 시작하는 줄 전체 삭제
+          | sed 's/[[:space:]]*#.*$//' \        # 라인 끝 주석 삭제
+          | sed '/^$/d' \                       # 빈 줄 삭제
+          | jq -Rn '[inputs|split("=")|{name:.[0],value:.[1]}]')
           echo "$ENV_VARS" > env.json
 
       - name: Configure AWS credentials
