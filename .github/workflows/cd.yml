@@ -34,7 +34,11 @@ jobs:
           }
           ' >> "$GITHUB_ENV"
           
-          echo "!!!!! $GITHUB_ENV !!!!"
+      - name: Debug GITHUB_ENV
+        run: |
+          echo "===== $GITHUB_ENV ====="
+          cat $GITHUB_ENV
+          echo "======================="
 
       - name: Create ECS env json
         run: |
