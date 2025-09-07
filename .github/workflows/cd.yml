@@ -58,44 +58,55 @@ jobs:
           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # 1) 현재 Task Definition의 "taskDefinition" 객체만 추출
+          # 1) 현재 TaskDefinition (taskDefinition 객체만)
           TASK_DEF=$(aws ecs describe-task-definition \
             --task-definition "$TASK_FAMILY" \
-            --query 'taskDefinition' \
-            --output json)
+            --query 'taskDefinition' --output json)
 
           # 2) env.json 읽기
           ENV_JSON=$(cat env.json)
 
-          # 3) 이미지/환경변수 패치 (모든 컨테이너 유지, 첫 컨테이너만 갱신하거나 이름 매칭)
-          NEW_TASK_DEF=$(echo "$TASK_DEF" | jq \
-            --arg IMAGE "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
-            --argjson ENV "$ENV_JSON" '
-            .containerDefinitions |= (map(
-              # 단일 컨테이너면 첫 번째만 수정해도 됨. 여러 개면 이름으로 조건 걸기.
-              if (.name == .name) then
-                .image = $IMAGE
-                | .environment = $ENV
-              else . end
-            ))
-            # register-task-definition에 필요한 필드만 남기기
-            | {
-                family, taskRoleArn, executionRoleArn, networkMode,
-                containerDefinitions, volumes, placementConstraints,
-                requiresCompatibilities, cpu, memory, runtimePlatform, ephemeralStorage
-              }
-            ')
+          # 3) 이미지/환경변수 패치 + 불필요/NULL 필드 제거
+          IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-          echo "$NEW_TASK_DEF" > new-task-def.json
-          cat new-task-def.json | jq '.'
+          NEW_TASK_DEF=$(
+            echo "$TASK_DEF" | jq \
+              --arg IMAGE "$IMAGE_URI" \
+              --argjson ENV "$ENV_JSON" '
+              .containerDefinitions |= map(
+                if .name == "econoeasy-be" then
+                  .image = $IMAGE
+                  | .environment = $ENV
+                else . end
+              )
+              # register-task-definition에 불필요/문제 대상 키 제거
+              | del(
+                  .status, .revision, .taskDefinitionArn, .requiresAttributes,
+                  .compatibilities, .registeredAt, .registeredBy,
+                  .deregisteredAt, .deregisteredBy, .proxyConfiguration,
+                  .inferenceAccelerators, .pidMode, .ipcMode, .tags,
+                  .ephemeralStorage  # <- null로 오면 실패하니 삭제
+                )
+              # null 전부 제거(taskRoleArn=null 등)
+              | with_entries(select(.value != null))
+              # EC2면 top-level cpu/memory 제거(선택)
+              | if (.requiresCompatibilities | index("EC2")) then
+                  del(.cpu, .memory)
+                else . end
+              '
+          )
+
+          echo "$NEW_TASK_DEF" | jq '.' > new-task-def.json
+          echo "!!!!! $NEW_TASK_DEF !!!!!"
+
+          # (디버그) environment 타입 확인
+          echo "env type:" && jq -r '.containerDefinitions[0].environment | type' new-task-def.json
 
           # 4) 새 revision 등록
           REG_OUT=$(aws ecs register-task-definition --cli-input-json file://new-task-def.json)
           NEW_TD_ARN=$(echo "$REG_OUT" | jq -r '.taskDefinition.taskDefinitionArn')
 
-          # 5) 서비스에 새 revision 반영
-          aws ecs update-service \
-            --cluster "$CLUSTER" \
-            --service "$SERVICE" \
-            --task-definition "$NEW_TD_ARN"
+          # 5) 서비스 업데이트
+          aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --task-definition "$NEW_TD_ARN"
+      
 
