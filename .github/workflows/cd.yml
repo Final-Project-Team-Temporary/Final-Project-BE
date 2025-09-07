@@ -8,7 +8,7 @@ on:
         required: false
         default: latest
   workflow_run:
-    workflows: ["ci.yml"]   # 위 build.yml의 name과 동일해야 함
+    workflows: ["ci.yml"]   # ci.yml의 name과 동일해야 함
     types: [completed]
 
 jobs:
@@ -77,8 +77,18 @@ jobs:
               --argjson ENV_ARG "$ENV_JSON" '
               .containerDefinitions |= map(
                 if .name == "econoeasy-be" then
-                  .image = $IMAGE
-                  | .environment = $ENV_ARG
+                .image = $IMAGE
+                | .environment = $ENV_ARG
+                | .memory = 512
+                | .memoryReservation = 256
+                | .logConfiguration = {
+                logDriver: "awslogs",
+                options: {
+                  "awslogs-group": "/ecs/econoeasy",
+                  "awslogs-region": "ap-northeast-2",
+                  "awslogs-stream-prefix": "ecs"
+                }
+                }
                 else . end
               )
               # register-task-definition에 불필요/문제 대상 키 제거
