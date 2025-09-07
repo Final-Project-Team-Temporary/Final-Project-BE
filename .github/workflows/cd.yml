@@ -33,7 +33,8 @@ jobs:
             
           }
           ' >> "$GITHUB_ENV"
-        
+          
+          echo "!!!!! $GITHUB_ENV !!!!"
 
       - name: Create ECS env json
         run: |
