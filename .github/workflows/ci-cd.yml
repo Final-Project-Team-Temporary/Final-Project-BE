@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Decode and export env vars
         run: |
-          echo "${{ secrets.APP_ENV_B64 }}" | base64 --decode > .env
+          echo "${{ secrets.APP_ENV_B64 }}" | base64 --decode | tr -d '\r'> .env
           # .env 내용을 GitHub Actions 환경변수로 export
           while IFS='=' read -r key value; do
             if [[ ! -z "$key" && ! "$key" =~ ^# ]]; then
@@ -65,7 +65,7 @@ jobs:
     steps:
       - name: Decode and export env vars
         run: |
-          echo "${{ secrets.APP_ENV_B64 }}" | base64 --decode > .env
+          echo "${{ secrets.APP_ENV_B64 }}" | base64 --decode | tr -d '\r'> .env
           # .env 내용을 GitHub Actions 환경변수로 export
           while IFS='=' read -r key value; do
             if [[ ! -z "$key" && ! "$key" =~ ^# ]]; then
