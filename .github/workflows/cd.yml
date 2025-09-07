@@ -20,6 +20,7 @@ jobs:
     steps:
       - name: Decode and export env vars
         run: |
+          echo "${{ secrets.APP_ENV_B64 }}" | base64 --decode | tr -d '\r'> .env
           # .env → $GITHUB_ENV로 안전 export
           awk -F= '
           /^[[:space:]]*#/ { next }        # 주석 줄 제거
