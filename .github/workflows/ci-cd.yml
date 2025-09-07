@@ -10,6 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Decode and export env vars
+        run: |
+          echo "${{ secrets.APP_ENV_B64 }}" | base64 --decode > .env
+          # .env 내용을 GitHub Actions 환경변수로 export
+          while IFS='=' read -r key value; do
+            if [[ ! -z "$key" && ! "$key" =~ ^# ]]; then
+              echo "$key=$value" >> $GITHUB_ENV
+            fi
+          done < .env
+
       - name: Check out code
         uses: actions/checkout@v3
 
@@ -26,9 +36,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id:     ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Log in to Amazon ECR
         id: login-ecr
@@ -36,8 +46,8 @@ jobs:
 
       - name: Build, tag, and push image to Amazon ECR
         env:
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITOR }}
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITOR }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -53,29 +63,50 @@ jobs:
     if: github.ref == 'refs/heads/develop'
 
     steps:
+      - name: Decode and export env vars
+        run: |
+          echo "${{ secrets.APP_ENV_B64 }}" | base64 --decode > .env
+          # .env 내용을 GitHub Actions 환경변수로 export
+          while IFS='=' read -r key value; do
+            if [[ ! -z "$key" && ! "$key" =~ ^# ]]; then
+              echo "$key=$value" >> $GITHUB_ENV
+            fi
+          done < .env
+
+      - name: Create ECS env json
+        run: |
+          ENV_VARS=$(cat .env | grep -v '^#' | sed '/^$/d' | jq -Rn '[inputs|split("=")|{name:.[0],value:.[1]}]')
+          echo "$ENV_VARS" > env.json
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Update ECS Service
         env:
-          CLUSTER: ${{ secrets.ECS_CLUSTER }}
-          SERVICE: ${{ secrets.ECS_SERVICE }}
-          TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY }}
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITOR }}
+          CLUSTER: ${{ env.ECS_CLUSTER }}
+          SERVICE: ${{ env.ECS_SERVICE }}
+          TASK_FAMILY: ${{ env.ECS_TASK_FAMILY }}
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITOR }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # 1. 현재 Task Definition 가져오기
           TASK_DEF=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY)
           
-          # 2. 이미지 교체 → 새 revision 등록
-          NEW_TASK_DEF=$(echo $TASK_DEF | jq --arg IMAGE "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
-          '.taskDefinition | .containerDefinitions[0].image=$IMAGE | {family, containerDefinitions, networkMode, requiresCompatibilities, cpu, memory, executionRoleArn, taskRoleArn}')
-          echo $NEW_TASK_DEF > new-task-def.json
+          # 2. 이미지 교체 + env.json 주입 → 새 revision 등록
+          NEW_TASK_DEF=$(echo $TASK_DEF | jq \
+          --arg IMAGE "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+          --argjson ENV "$(cat env.json)" \
+          '.taskDefinition
+          | .containerDefinitions[0].image=$IMAGE
+          | .containerDefinitions[0].environment=$ENV
+          | {family, containerDefinitions, networkMode, requiresCompatibilities, cpu, memory, executionRoleArn, taskRoleArn}')
+          
+          echo "$NEW_TASK_DEF" > new-task-def.json
           aws ecs register-task-definition --cli-input-json file://new-task-def.json
           
           # 3. 최신 revision 번호 가져오기
