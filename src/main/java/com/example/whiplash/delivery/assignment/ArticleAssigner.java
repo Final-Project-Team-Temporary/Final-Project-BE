@@ -1,6 +1,6 @@
 package com.example.whiplash.delivery.assignment;
 
-import com.example.whiplash.article.entity.UserArticleAssignment;
+import com.example.whiplash.article.domain.entity.UserArticleAssignment;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -1,8 +1,8 @@
 package com.example.whiplash.article.repository;
 
 import com.example.whiplash.IntegrationTestSupport;
-import com.example.whiplash.article.document.Category;
-import com.example.whiplash.article.document.SummarizedArticle;
+import com.example.whiplash.article.domain.document.Category;
+import com.example.whiplash.article.domain.document.SummarizedArticle;
 import com.example.whiplash.domain.entity.history.email.SummaryLevel;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class SummarizedArticleRepositoryTest extends IntegrationTestSupport {
 

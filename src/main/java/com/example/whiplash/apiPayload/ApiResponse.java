@@ -10,14 +10,13 @@ import lombok.Getter;
 @JsonPropertyOrder({"isSuccess", "code", "message", "result"})
 public class ApiResponse<T> {
 
-    @JsonProperty("isSuccess")
     private boolean success;
 
     private String message;
 
     private String code;
 
-    private T result;
+    private T data;
 
     public static <T> ApiResponse<T> onSuccess(T result) {
         return new ApiResponse<>(true, SuccessStatus._OK.getCode(), SuccessStatus._OK.getMessage(), result);

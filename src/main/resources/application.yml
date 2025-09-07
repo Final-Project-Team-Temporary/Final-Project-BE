@@ -60,6 +60,10 @@ kakao:
   client-id: ${KAKAO_CLIENT_ID}
   redirect-uri: ${KAKAO_REDIRECT_URI}
 
+redis:
+  key:
+    stream-key: ${REDIS_STREAM_KEY}
+    dedup-key: ${REDIS_DEDUP_KEY}
 
 logging:
   level:

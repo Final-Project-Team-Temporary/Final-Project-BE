@@ -1,7 +1,7 @@
 package com.example.whiplash.delivery.email;
 
 
-import com.example.whiplash.article.document.SummarizedArticle;
+import com.example.whiplash.article.domain.document.SummarizedArticle;
 import com.example.whiplash.article.repository.SummarizedArticleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

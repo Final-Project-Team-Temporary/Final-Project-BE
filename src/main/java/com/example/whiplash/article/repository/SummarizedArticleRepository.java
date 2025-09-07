@@ -1,6 +1,6 @@
 package com.example.whiplash.article.repository;
 
-import com.example.whiplash.article.document.SummarizedArticle;
+import com.example.whiplash.article.domain.document.SummarizedArticle;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.time.LocalDateTime;

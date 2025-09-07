@@ -32,17 +32,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	// mysql
 	runtimeOnly 'com.mysql:mysql-connector-j'
-
+	// redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-
-
-
-	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
-	runtimeOnly 'com.h2database:h2'
 	// spring mongodb
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.4.0'
@@ -57,19 +52,25 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
-
 	// dotenv
+	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
 	testImplementation 'io.github.cdimascio:dotenv-java:3.0.0'
-
 	// jwt
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-
-
+	// h2
+	runtimeOnly 'com.h2database:h2'
+	// spring boot test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// spring security test
 	testImplementation 'org.springframework.security:spring-security-test'
+	// TestContainer
+	testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
+	testImplementation "com.redis:testcontainers-redis:2.2.2"
+	testImplementation "org.testcontainers:mongodb:1.21.3"
+
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
