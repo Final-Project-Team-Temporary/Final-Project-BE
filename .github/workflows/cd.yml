@@ -21,19 +21,18 @@ jobs:
       - name: Decode and export env vars
         run: |
           echo "${{ secrets.APP_ENV_B64 }}" | base64 --decode | tr -d '\r'> .env
-          # .env → $GITHUB_ENV로 안전 export
-          awk -F= '
-          /^[[:space:]]*#/ { next }        # 주석 줄 제거
-          /^[[:space:]]*$/ { next }        # 빈 줄 제거
+          
+          # 2) 주석/빈줄 제거 후 GitHub Actions 환경변수에 쓰기
+          sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d' .env \
+          | awk -F= '
+          /^[[:space:]]*#/ { next }        # 주석 라인 무시
+          /^[[:space:]]*$/ { next }        # 빈 줄 무시
           {
             key=$1
-            sub(/^[[:space:]]+|[[:space:]]+$/, "", key)   # key trim
-            val=substr($0, index($0,$2))                  # = 뒤 원문
-            sub(/[[:space:]]*#.*$/, "", val)              # 인라인 주석 제거
-            gsub(/\r/, "", val)                           # CR 제거
+            val=substr($0, index($0,$2))   # = 뒤 원문 전체 (foo=bar=baz → bar=baz 보존)
             
           }
-          ' .env >> "$GITHUB_ENV"
+          ' >> "$GITHUB_ENV"
         
 
       - name: Create ECS env json
