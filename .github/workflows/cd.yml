@@ -91,10 +91,6 @@ jobs:
                 )
               # null 전부 제거(taskRoleArn=null 등)
               | with_entries(select(.value != null))
-              # EC2면 top-level cpu/memory 제거(선택)
-              | if (.requiresCompatibilities | index("EC2")) then
-                  del(.cpu, .memory)
-                else . end
               '
           )
 
