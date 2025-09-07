@@ -1,15 +1,13 @@
-name: CI-CD Pipeline
+name: CI-CD Pipeline (ECS + ECR)
 
 on:
   push:
     branches: [ develop ]
 
-# 각 Job은 독립적인 환경(저장소, 가상머신)에서 실행
 jobs:
-  # 1. 빌드·테스트·이미지 푸시
+  # 1. 빌드 + 이미지 빌드 & 푸시
   build:
     runs-on: ubuntu-latest
-    environment: DOCKERHUB_USERNAME
 
     steps:
       - name: Check out code
@@ -18,76 +16,73 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'   # AdoptOpenJDK 기반의 Temurin 배포판
-          java-version: '17'        # 설치할 Java 버전
-          cache: 'gradle'           # Gradle 의존성 캐시 활성화 (선택)
-
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
 
       - name: Build (no Test)
         run: ./gradlew clean bootJar --no-daemon
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Build and Push Docker Image
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
         env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN:    ${{ secrets.DOCKERHUB_TOKEN }}
-          IMAGE_TAG:          ${{ github.sha }}
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITOR }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          # IMAGE_TAG, DOCKERHUB_USERNAME 변수를 사용
-          docker build \
-            -t $DOCKERHUB_USERNAME/econoeasy-be:$IMAGE_TAG \
-            .
-          docker push \
-            $DOCKERHUB_USERNAME/econoeasy-be:$IMAGE_TAG
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          # 태그관리: latest, github hash 
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-  # 2. 빌드 성공 후 배포
+  # 2. ECS 서비스 업데이트 (무중단 배포)
   deploy:
-    environment: DOCKERHUB_USERNAME
     needs: build
-    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
 
     steps:
-      - name: Check out code # 이 스텝이 있어야 리포지토리 파일에 접근 가능
-        uses: actions/checkout@v3
-
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{secrets.SSH_KNOWN_HOSTS}}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Copy docker-compose.yml to EC2
+      - name: Update ECS Service
         env:
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          DEST_PATH: /home/${{ secrets.SSH_USER }}/econoeasy/docker-compose.yml # EC2의 목적지 경로
-        run: |
-          # `docker-compose.yml` 파일이 리포지토리의 루트에 있다고 가정합니다.
-          # 만약 다른 경로에 있다면 `docker-compose.yml` 대신 해당 경로를 지정하세요.
-          scp -o StrictHostKeyChecking=no ./docker-compose.yml $SSH_USER@$SSH_HOST:$DEST_PATH
-
-
-      - name: Deploy to EC2 via SSH
-        env:
+          CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          SERVICE: ${{ secrets.ECS_SERVICE }}
+          TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY }}
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITOR }}
           IMAGE_TAG: ${{ github.sha }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
         run: |
-          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST <<EOF
-            cd /home/$SSH_USER/econoeasy
-            # 환경변수 내보내기
-            export DOCKERHUB_USERNAME=$DOCKERHUB_USERNAME
-            export IMAGE_TAG=$IMAGE_TAG
-            # 방금 빌드·푸시된 SHA 태그 이미지를 명시적으로 내려받습니다.
-            docker pull $DOCKERHUB_USERNAME/econoeasy-be:$IMAGE_TAG
-            # 도커 컴포즈로 컨테이너를 재시작
-            docker-compose down
-            docker-compose up -d
-          EOF
+          # 1. 현재 Task Definition 가져오기
+          TASK_DEF=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY)
+          
+          # 2. 이미지 교체 → 새 revision 등록
+          NEW_TASK_DEF=$(echo $TASK_DEF | jq --arg IMAGE "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+          '.taskDefinition | .containerDefinitions[0].image=$IMAGE | {family, containerDefinitions, networkMode, requiresCompatibilities, cpu, memory, executionRoleArn, taskRoleArn}')
+          echo $NEW_TASK_DEF > new-task-def.json
+          aws ecs register-task-definition --cli-input-json file://new-task-def.json
+          
+          # 3. 최신 revision 번호 가져오기
+          REVISION=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY | jq .taskDefinition.revision)
+          
+          # 4. 서비스 업데이트 (새 revision 반영)
+          aws ecs update-service \
+          --cluster $CLUSTER \
+          --service $SERVICE_NAME \
+          --task-definition $TASK_FAMILY:$REVISION
