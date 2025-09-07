@@ -22,23 +22,13 @@ jobs:
         run: |
           echo "${{ secrets.APP_ENV_B64 }}" | base64 --decode | tr -d '\r'> .env
           
-          # 2) 주석/빈줄 제거 후 GitHub Actions 환경변수에 쓰기
+          # 모든 환경변수를 GitHub Actions 환경변수로 export
           sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d' .env \
-          | awk -F= '
-          /^[[:space:]]*#/ { next }        # 주석 라인 무시
-          /^[[:space:]]*$/ { next }        # 빈 줄 무시
-          {
-            key=$1
-            val=substr($0, index($0,$2))   # = 뒤 원문 전체 (foo=bar=baz → bar=baz 보존)
-            
-          }
-          ' >> "$GITHUB_ENV"
-          
-      - name: Debug GITHUB_ENV
-        run: |
-          echo "===== $GITHUB_ENV ====="
-          cat $GITHUB_ENV
-          echo "======================="
+          | while IFS='=' read -r key value; do
+          if [[ -n "$key" ]]; then
+            echo "$key=$value" >> "$GITHUB_ENV"
+          fi
+          done
 
       - name: Create ECS env json
         run: |
