@@ -75,10 +75,11 @@ jobs:
 
       - name: Create ECS env json
         run: |
+          # (공백+# 로 시작하는 줄), (라인 끝 # 주석), (빈줄) 삭제
           ENV_VARS=$(cat .env \
-          | sed 's/^[[:space:]]*#.*$//' \       # 공백 + # 로 시작하는 줄 전체 삭제
-          | sed 's/[[:space:]]*#.*$//' \        # 라인 끝 주석 삭제
-          | sed '/^$/d' \                       # 빈 줄 삭제
+          | sed 's/^[[:space:]]*#.*$//' \
+          | sed 's/[[:space:]]*#.*$//' \
+          | sed '/^$/d' \
           | jq -Rn '[inputs|split("=")|{name:.[0],value:.[1]}]')
           echo "$ENV_VARS" > env.json
 
