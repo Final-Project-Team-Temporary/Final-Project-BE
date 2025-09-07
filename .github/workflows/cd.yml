@@ -20,13 +20,20 @@ jobs:
     steps:
       - name: Decode and export env vars
         run: |
-          echo "${{ secrets.APP_ENV_B64 }}" | base64 --decode | tr -d '\r'> .env
-          # .env 내용을 GitHub Actions 환경변수로 export
-          while IFS='=' read -r key value; do
-            if [[ ! -z "$key" && ! "$key" =~ ^# ]]; then
-              echo "$key=$value" >> $GITHUB_ENV
-            fi
-          done < .env
+          # .env → $GITHUB_ENV로 안전 export
+          awk -F= '
+          /^[[:space:]]*#/ { next }        # 주석 줄 제거
+          /^[[:space:]]*$/ { next }        # 빈 줄 제거
+          {
+            key=$1
+            sub(/^[[:space:]]+|[[:space:]]+$/, "", key)   # key trim
+            val=substr($0, index($0,$2))                  # = 뒤 원문
+            sub(/[[:space:]]*#.*$/, "", val)              # 인라인 주석 제거
+            gsub(/\r/, "", val)                           # CR 제거
+            
+          }
+          ' .env >> "$GITHUB_ENV"
+        
 
       - name: Create ECS env json
         run: |
@@ -72,11 +79,11 @@ jobs:
           NEW_TASK_DEF=$(
             echo "$TASK_DEF" | jq \
               --arg IMAGE "$IMAGE_URI" \
-              --argjson ENV "$ENV_JSON" '
+              --argjson ENV_ARG "$ENV_JSON" '
               .containerDefinitions |= map(
                 if .name == "econoeasy-be" then
                   .image = $IMAGE
-                  | .environment = $ENV
+                  | .environment = $ENV_ARG
                 else . end
               )
               # register-task-definition에 불필요/문제 대상 키 제거
