@@ -75,14 +75,17 @@ jobs:
 
       - name: Create ECS env json
         run: |
-          # (공백+# 로 시작하는 줄), (라인 끝 # 주석), (빈줄) 삭제
-          ENV_VARS=$(cat .env \
-          | sed '/^[[:space:]]*#/d' \
-          | sed 's/[[:space:]]*#.*$//' \
-          | sed '/^[[:space:]]*$/d' \
-          | jq -Rn '[inputs|split("=")|{name:.[0],value:.[1]}]')
+          # ① 공백 + # 로 시작하는 줄 삭제, ② 라인 끝 주석 삭제, ③ 빈줄 삭제
+          CLEAN=$(sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d' .env)
+
+          # ④ KEY=VALUE 에서 VALUE 안에 '=' 가 있어도 안전하게 처리
+          ENV_VARS=$(printf "%s\n" "$CLEAN" | jq -Rn '
+            def kv: (split("=")) | {name: .[0], value: (.[1:] | join("="))};
+            [inputs | kv]
+          ')
           echo "$ENV_VARS" > env.json
           cat env.json
+      
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -100,35 +103,43 @@ jobs:
           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # 1. 현재 Task Definition 가져오기
-          TASK_DEF=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY)
-          
-          # 2. 이미지 교체 + env.json 주입 → 새 revision 등록
-          NEW_TASK_DEF=$(echo $TASK_DEF | jq \
-          --arg IMAGE "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
-          --argjson ENV "$(cat env.json)" \
-          '{
-            family: .family,
-            networkMode: .networkMode,
-            requiresCompatibilities: .requiresCompatibilities,
-            cpu: .cpu,
-            memory: .memory,
-            executionRoleArn: .executionRoleArn,
-            taskRoleArn: .taskRoleArn,
-            containerDefinitions: [
-              .containerDefinitions[0] | 
-              .image = $IMAGE |
-              .environment = $ENV
-            ]
-          }')
+          # 1) 현재 Task Definition의 "taskDefinition" 객체만 추출
+          TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition "$TASK_FAMILY" \
+            --query 'taskDefinition' \
+            --output json)
+
+          # 2) env.json 읽기
+          ENV_JSON=$(cat env.json)
+
+          # 3) 이미지/환경변수 패치 (모든 컨테이너 유지, 첫 컨테이너만 갱신하거나 이름 매칭)
+          NEW_TASK_DEF=$(echo "$TASK_DEF" | jq \
+            --arg IMAGE "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            --argjson ENV "$ENV_JSON" '
+            .containerDefinitions |= (map(
+              # 단일 컨테이너면 첫 번째만 수정해도 됨. 여러 개면 이름으로 조건 걸기.
+              if (.name == .name) then
+                .image = $IMAGE
+                | .environment = $ENV
+              else . end
+            ))
+            # register-task-definition에 필요한 필드만 남기기
+            | {
+                family, taskRoleArn, executionRoleArn, networkMode,
+                containerDefinitions, volumes, placementConstraints,
+                requiresCompatibilities, cpu, memory, runtimePlatform, ephemeralStorage
+              }
+            ')
+
           echo "$NEW_TASK_DEF" > new-task-def.json
-          aws ecs register-task-definition --cli-input-json file://new-task-def.json
-          
-          # 3. 최신 revision 번호 가져오기
-          REVISION=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY | jq .taskDefinition.revision)
-          
-          # 4. 서비스 업데이트 (새 revision 반영)
+          cat new-task-def.json | jq '.'
+
+          # 4) 새 revision 등록
+          REG_OUT=$(aws ecs register-task-definition --cli-input-json file://new-task-def.json)
+          NEW_TD_ARN=$(echo "$REG_OUT" | jq -r '.taskDefinition.taskDefinitionArn')
+
+          # 5) 서비스에 새 revision 반영
           aws ecs update-service \
-          --cluster $CLUSTER \
-          --service $SERVICE \
-          --task-definition $TASK_FAMILY:$REVISION
+            --cluster "$CLUSTER" \
+            --service "$SERVICE" \
+            --task-definition "$NEW_TD_ARN"
