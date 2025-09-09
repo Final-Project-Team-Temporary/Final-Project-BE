@@ -79,7 +79,7 @@ jobs:
                 if .name == "econoeasy-be" then
                 .image = $IMAGE
                 | .environment = $ENV_ARG
-                | .memory = 512
+                | .memory = 461
                 | .memoryReservation = 256
                 | .logConfiguration = {
                 logDriver: "awslogs",
