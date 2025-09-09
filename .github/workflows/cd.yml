@@ -43,6 +43,13 @@ jobs:
           echo "$ENV_VARS" > env.json
           cat env.json
 
+      - name: Set IMAGE_TAG by trigger type
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "IMAGE_TAG= ${{ github.sha }}" >> $GITHUB_ENV
+          fi
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -58,7 +65,7 @@ jobs:
           TASK_FAMILY: ${{ env.ECS_TASK_FAMILY }}
           ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
           # 1) 현재 TaskDefinition (taskDefinition 객체만)
           TASK_DEF=$(aws ecs describe-task-definition \
