@@ -48,7 +48,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "IMAGE_TAG=latest" >> $GITHUB_ENV
           else
-            echo "IMAGE_TAG= ${{ github.sha }}" >> $GITHUB_ENV
+            echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
           fi
           echo "tag: $IMAGE_TAG"
 
