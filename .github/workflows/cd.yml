@@ -47,10 +47,11 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+            echo "activate tag: latest"
           else
             echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
+            echo "activate tag: ${{ github.sha }}"
           fi
-          echo "tag: $IMAGE_TAG"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
