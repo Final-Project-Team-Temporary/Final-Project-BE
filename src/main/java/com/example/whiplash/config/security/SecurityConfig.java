@@ -34,10 +34,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         (requests) -> requests
                                 .requestMatchers(
-                                        "/",
+                                        "/health",
                                         "/api/auth/register",
                                         "/api/auth/login",
                                         "/api/auth/refresh",
+                                        "/api/articles/summarization/**",
                                         "/swagger-ui/**",
                                         "/kakao_login_medium_narrow.png",
                                         "/v3/api-docs/**",
