@@ -1,0 +1,22 @@
+### crawler가 처리가 필요한 기사 목록을 제공
+POST http://api.econoeasy.xyz/api/articles/summarization/request
+Content-Type: application/json
+
+{
+  "articleIds": [
+    "68f3573a6313854f303cbf76",
+    "68f3573a6313854f303cbf7b",
+    "68f3573a6313854f303cbf7a",
+    "68f3573a6313854f303cbf79",
+    "68f3573a6313854f303cbf78",
+    "68f3573a6313854f303cbf77",
+    "68f32d0a339aa75e7f6ea8a0",
+    "68f32d0a339aa75e7f6ea8a2",
+    "68f32d0a339aa75e7f6ea8a1"
+  ],
+  "timestamp": "2025-10-18T23:50:00"
+}
+
+
+### health check
+GET api.econoeasy.xyz/health
