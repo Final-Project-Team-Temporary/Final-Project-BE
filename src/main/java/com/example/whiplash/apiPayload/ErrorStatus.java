@@ -30,6 +30,9 @@ public enum ErrorStatus {
     INVALID_ARTICLE_SOURCE("A305", "유효하지 않은 기사 출처입니다"),
     INVALID_ARTICLE_URL("A306", "유효하지 않은 기사 URL입니다"),
     
+    // 작업 관련
+    JOB_NOT_FOUND("J401", "요청한 작업을 찾을 수 없습니다"),
+    
     // 시스템 관련
     INTERNAL_SERVER_ERROR("E999", "서버 내부 오류가 발생했습니다");
 
