@@ -24,7 +24,7 @@ spring:
       port: ${REDIS_PORT:6379}
       timeout: 2000ms
       ssl:
-        enabled: ${REDIS_SSL_ENABLED}
+        enabled: ${REDIS_SSL_ENABLED:true}
 
   mail:
     host: ${GMAIL_HOST}
