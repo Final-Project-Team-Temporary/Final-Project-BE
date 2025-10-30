@@ -9,11 +9,5 @@ import java.util.List;
 
 public interface ArticleRepository extends MongoRepository<Article, String> {
 
-    List<Article> findAllByPublishedAtAfter(LocalDateTime publishedAtAfter);
-    
     List<Article> findBySummaryStatus(SummaryStatus summaryStatus);
-    
-    List<Article> findBySummaryStatusIn(List<SummaryStatus> summaryStatuses);
-    
-    List<Article> findByUpdatedAtAfter(LocalDateTime updatedAt);
 }
