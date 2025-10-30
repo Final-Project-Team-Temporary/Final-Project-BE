@@ -38,7 +38,7 @@ public class RedisStreamsTaskProducer implements ArticleTaskProducer {
 
         RecordId recordId = redisTemplate.opsForStream()
                 .add(ObjectRecord.create(STREAM_KEY, body));
-        log.info("Published articleId={} stream with recordId={}", articleId, recordId);
+        log.info("Published articleId={} stream with recordId={} stream-key: {}", articleId, recordId, STREAM_KEY);
 
         return recordId.getValue();
     }

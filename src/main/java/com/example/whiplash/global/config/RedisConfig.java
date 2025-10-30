@@ -41,14 +41,16 @@ public class RedisConfig {
 
         // Key는 StringSerializer
         StringRedisSerializer stringSerializer = new StringRedisSerializer();
-        template.setKeySerializer(stringSerializer);
-        template.setHashKeySerializer(stringSerializer);
-
         // Value는 JSON
-        GenericJackson2JsonRedisSerializer jsonSerializer =
-            new GenericJackson2JsonRedisSerializer();
+        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer();
+
+        template.setKeySerializer(stringSerializer);
         template.setValueSerializer(jsonSerializer);
+        template.setHashKeySerializer(stringSerializer);
         template.setHashValueSerializer(jsonSerializer);
+
+        template.setEnableDefaultSerializer(false);
+        template.setDefaultSerializer(stringSerializer);
 
         template.afterPropertiesSet();
         return template;
