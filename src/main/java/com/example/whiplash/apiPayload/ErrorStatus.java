@@ -29,6 +29,11 @@ public enum ErrorStatus {
     INVALID_ARTICLE_TITLE("A304", "유효하지 않은 기사 제목입니다"),
     INVALID_ARTICLE_SOURCE("A305", "유효하지 않은 기사 출처입니다"),
     INVALID_ARTICLE_URL("A306", "유효하지 않은 기사 URL입니다"),
+
+    // 기사 조회 관련
+    ARTICLE_NOT_FOUND("A401", "기사를 찾을 수 없습니다"),
+    SUMMARIZED_ARTICLE_NOT_FOUND("A402", "요약된 기사를 찾을 수 없습니다"),
+    INCOMPLETE_ARTICLE_SUMMARIES("A403", "기사의 요약이 완전하지 않습니다"),
     
     // 작업 관련
     JOB_NOT_FOUND("J401", "요청한 작업을 찾을 수 없습니다"),

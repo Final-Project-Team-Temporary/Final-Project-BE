@@ -9,4 +9,6 @@ import java.util.List;
 public interface SummarizedArticleRepository extends MongoRepository<SummarizedArticle, String> {
 
     List<SummarizedArticle> findAllByPublishedAtGreaterThanEqual(LocalDateTime publishedAtIsGreaterThan);
+
+    List<SummarizedArticle> findAllByOriginalArticleId(String originalArticleId);
 }
