@@ -38,7 +38,7 @@ public class SecurityConfig {
                                         "/api/auth/register",
                                         "/api/auth/login",
                                         "/api/auth/refresh",
-                                        "/api/articles/summarization/**",
+                                        "/api/articles/**",
                                         "/swagger-ui/**",
                                         "/kakao_login_medium_narrow.png",
                                         "/v3/api-docs/**",
