@@ -4,11 +4,16 @@ import com.example.whiplash.apiPayload.ErrorStatus;
 import com.example.whiplash.apiPayload.exception.WhiplashException;
 import com.example.whiplash.config.security.jwt.JwtTokenProvider;
 import com.example.whiplash.converter.AuthConverter;
+import com.example.whiplash.converter.InvestorProfileConverter;
 import com.example.whiplash.converter.UserConverter;
+import com.example.whiplash.domain.repository.InvestorProfileRepository;
 import com.example.whiplash.user.domain.LoginStatus;
+import com.example.whiplash.user.domain.Role;
 import com.example.whiplash.user.domain.User;
 import com.example.whiplash.user.domain.UserStatus;
+import com.example.whiplash.user.domain.profile.InvestorProfile;
 import com.example.whiplash.user.repository.user.UserRepository;
+import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
 import com.example.whiplash.user.web.dto.response.KakaoUserInfoResponseDTO;
 import com.example.whiplash.user.web.dto.request.LoginRequestDTO;
 import com.example.whiplash.user.web.dto.response.TokenResponseDTO;
@@ -34,6 +39,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final KakaoAuthService kakaoAuthService;
+    private final InvestorProfileRepository investorProfileRepository;
 
     @Transactional
     public TokenResponseDTO joinUser(UserCreateDTO userCreateDTO) {
@@ -157,6 +163,31 @@ public class AuthService {
         refreshTokenService.saveRefreshToken(newRefreshToken);
 
         return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER);
+    }
+
+    @Transactional
+    public TokenResponseDTO completeRegistration(String userName, ProfileRegisterDTO request) {
+
+        User tempUser = userRepository.findByKakaoId(Long.parseLong(userName))
+                .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
+
+        InvestorProfile investorProfile = InvestorProfileConverter.toInvestorProfile(request, tempUser);
+
+        investorProfileRepository.save(investorProfile);
+
+        tempUser.activateUser();
+        tempUser.updateRole(Role.USER);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(String.valueOf(tempUser.getKakaoId()), null,
+                Collections.singleton(() -> tempUser.getRole().name()));
+
+        String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+
+        refreshTokenService.saveRefreshToken(newRefreshToken);
+
+        return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER, tempUser.getName());
+
     }
 
 }

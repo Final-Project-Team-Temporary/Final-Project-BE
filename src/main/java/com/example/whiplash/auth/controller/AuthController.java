@@ -55,4 +55,9 @@ public class AuthController {
         TokenResponseDTO tokenResponseDTO = authService.refreshToken(tokenRefreshRequestDTO.getRefreshToken());
         return ResponseEntity.ok(ApiResponse.onSuccess(tokenResponseDTO));
     }
+
+    @PostMapping("/complete-registration")
+    public ApiResponse<?> completeRegistration(@Valid @RequestBody UserCreateDTO userCreateDTO) {
+
+    }
 }
