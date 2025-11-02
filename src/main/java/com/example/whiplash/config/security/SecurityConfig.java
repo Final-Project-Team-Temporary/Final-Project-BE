@@ -1,13 +1,21 @@
 package com.example.whiplash.config.security;
 
+import com.example.whiplash.config.security.filter.LoginAuthenticationFilter;
+import com.example.whiplash.config.security.handler.LoginFailureHandler;
+import com.example.whiplash.config.security.handler.LoginSuccessHandler;
 import com.example.whiplash.config.security.jwt.JwtAuthenticationFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -19,6 +27,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final LoginSuccessHandler loginSuccessHandler;
+    private final LoginFailureHandler loginFailureHandler;
+    private final UserDetailsService customUserDetailService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -26,7 +37,23 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(customUserDetailService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return new ProviderManager(authProvider);
+    }
+
+    @Bean
+    public LoginAuthenticationFilter loginAuthenticationFilter(ObjectMapper objectMapper) {
+        LoginAuthenticationFilter filter = new LoginAuthenticationFilter(authenticationManager(), objectMapper);
+        filter.setAuthenticationSuccessHandler(loginSuccessHandler);
+        filter.setAuthenticationFailureHandler(loginFailureHandler);
+        return filter;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginAuthenticationFilter loginAuthenticationFilter) throws Exception {
         http
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -37,6 +64,7 @@ public class SecurityConfig {
                                         "/health",
                                         "/api/auth/register",
                                         "/api/auth/login",
+                                        "/api/login",
                                         "/api/auth/refresh",
                                         "/api/articles/**",
                                         "/swagger-ui/**",
@@ -53,7 +81,8 @@ public class SecurityConfig {
                                 .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
