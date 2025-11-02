@@ -5,6 +5,7 @@ import com.example.whiplash.apiPayload.exception.WhiplashException;
 import com.example.whiplash.config.security.jwt.JwtTokenProvider;
 import com.example.whiplash.converter.AuthConverter;
 import com.example.whiplash.converter.UserConverter;
+import com.example.whiplash.user.domain.LoginStatus;
 import com.example.whiplash.user.domain.User;
 import com.example.whiplash.user.domain.UserStatus;
 import com.example.whiplash.user.repository.user.UserRepository;
@@ -50,7 +51,7 @@ public class AuthService {
 
         String tempToken = jwtTokenProvider.generateTempToken(newUser);
 
-        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING);
+        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING, LoginStatus.NEW_USER);
     }
 
     @Transactional
@@ -58,19 +59,23 @@ public class AuthService {
         String accessTokenFromKakao = kakaoAuthService.getAccessTokenFromKakao(code);
         KakaoUserInfoResponseDTO userInfo = kakaoAuthService.getKakaoUserInfo(accessTokenFromKakao);
 
+        // 카카오 ID를 통해서 기존 유저 정보 조회
         Optional<User> user = userRepository.findByKakaoId(userInfo.getId());
 
+        // 유저 정보가 이미 존재하는 경우 -> 바로 토큰 생성 후 반환
         if (user.isPresent()) {
             TokenResponseDTO tokenResponseDTO = loginByKakao(user.get());
             return tokenResponseDTO;
         }
 
+        // 유저 정보가 없는 경우 -> 회원가입
         User kakaoUser = UserConverter.toKakaoUser(userInfo);
 
         userRepository.save(kakaoUser);
 
+        // 회원가입의 경우 임시토큰 생성
         String tempToken = jwtTokenProvider.generateTempSocialToken(kakaoUser);
-        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING);
+        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING, LoginStatus.NEW_USER);
     }
 
     @Transactional
@@ -91,7 +96,7 @@ public class AuthService {
 
         refreshTokenService.saveRefreshToken(refreshToken);
 
-        return AuthConverter.toTokenResponseDTO(accessToken, refreshToken, UserStatus.ACTIVE);
+        return AuthConverter.toTokenResponseDTO(accessToken, refreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER);
     }
 
     @Transactional
@@ -120,7 +125,7 @@ public class AuthService {
 
         refreshTokenService.saveRefreshToken(refreshToken);
 
-        return AuthConverter.toTokenResponseDTO(accessToken, refreshToken, UserStatus.ACTIVE);
+        return AuthConverter.toTokenResponseDTO(accessToken, refreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER);
     }
 
     @Transactional
@@ -151,7 +156,7 @@ public class AuthService {
 
         refreshTokenService.saveRefreshToken(newRefreshToken);
 
-        return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken, UserStatus.ACTIVE);
+        return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER);
     }
 
 }
