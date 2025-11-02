@@ -87,9 +87,8 @@ public class SecurityConfig {
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-                .cors(Customizer.withDefaults()) // ✅ enable CORS
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .cors(Customizer.withDefaults()); // ✅ enable CORS
 
         return http.build();
     }
