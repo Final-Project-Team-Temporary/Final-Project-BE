@@ -58,37 +58,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginAuthenticationFilter loginAuthenticationFilter) throws Exception {
-        http
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authorizeHttpRequests(
-                        (requests) -> requests
-                                .requestMatchers(
-                                        "/api/auth/**",
-                                        "/health",
-                                        "/api/auth/register",
-                                        "/api/auth/login",
-                                        "/api/login",
-                                        "/api/auth/refresh",
-                                        "/api/articles/**",
-                                        "/swagger-ui/**",
-                                        "/kakao_login_medium_narrow.png",
-                                        "/v3/api-docs/**",
-                                        "/login/page",
-                                        "/callback",
-                                        "/login/naver",
-                                        "/loginNaver",
-                                        "/naver.png",
-                                        "/callback/naver").permitAll()
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/api/auth/profile-setup").hasRole("TEMP_USER")
-                                .anyRequest().authenticated()
-                )
-                .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .cors(Customizer.withDefaults()); // ✅ enable CORS
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests((requests) -> requests.requestMatchers("/api/auth/**", "/health", "/api/auth/register", "/api/auth/login", "/api/login", "/api/auth/refresh", "/api/articles/**", "/swagger-ui/**", "/kakao_login_medium_narrow.png", "/v3/api-docs/**", "/login/page", "/callback", "/login/naver", "/loginNaver", "/naver.png", "/callback/naver").permitAll().requestMatchers("/admin/**").hasRole("ADMIN").requestMatchers("/api/auth/profile-setup").hasRole("TEMP_USER").anyRequest().authenticated()).csrf(AbstractHttpConfigurer::disable).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).cors(Customizer.withDefaults()); // ✅ enable CORS
 
         return http.build();
     }

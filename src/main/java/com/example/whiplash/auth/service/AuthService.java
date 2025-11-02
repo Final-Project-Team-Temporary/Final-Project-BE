@@ -13,11 +13,11 @@ import com.example.whiplash.user.domain.User;
 import com.example.whiplash.user.domain.UserStatus;
 import com.example.whiplash.user.domain.profile.InvestorProfile;
 import com.example.whiplash.user.repository.user.UserRepository;
-import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
-import com.example.whiplash.user.web.dto.response.KakaoUserInfoResponseDTO;
 import com.example.whiplash.user.web.dto.request.LoginRequestDTO;
-import com.example.whiplash.user.web.dto.response.TokenResponseDTO;
+import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
 import com.example.whiplash.user.web.dto.request.UserCreateDTO;
+import com.example.whiplash.user.web.dto.response.KakaoUserInfoResponseDTO;
+import com.example.whiplash.user.web.dto.response.TokenResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -61,7 +61,7 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenResponseDTO authenticateByKakao(String code){
+    public TokenResponseDTO authenticateByKakao(String code) {
         String accessTokenFromKakao = kakaoAuthService.getAccessTokenFromKakao(code);
         KakaoUserInfoResponseDTO userInfo = kakaoAuthService.getKakaoUserInfo(accessTokenFromKakao);
 
@@ -87,11 +87,11 @@ public class AuthService {
     @Transactional
     public TokenResponseDTO loginByKakao(User user) {
 
-        if(user.getUserStatus() == UserStatus.PENDING || user.getUserStatus() == UserStatus.INACTIVE) {
+        if (user.getUserStatus() == UserStatus.PENDING || user.getUserStatus() == UserStatus.INACTIVE) {
             throw new WhiplashException(ErrorStatus.USER_NOT_ACTIVATED);
         }
 
-        String userId = user.getSocialProvider().name() + "_" +  user.getKakaoId();
+        String userId = user.getSocialProvider().name() + "_" + user.getKakaoId();
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userId, null, Collections.singletonList(() -> user.getRole().name()));
@@ -112,19 +112,19 @@ public class AuthService {
 
         log.info("첫번째 조회 ----------------");
 
-        if(user.getUserStatus() == UserStatus.PENDING || user.getUserStatus() == UserStatus.INACTIVE) {
+        if (user.getUserStatus() == UserStatus.PENDING || user.getUserStatus() == UserStatus.INACTIVE) {
             throw new WhiplashException(ErrorStatus.USER_NOT_ACTIVATED);
         }
 
         log.info("두번째 조회 ----------------");
 
-        if(!passwordEncoder.matches(loginRequestDTO.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(loginRequestDTO.password(), user.getPassword())) {
             throw new WhiplashException(ErrorStatus.INVALID_PASSWORD);
         }
         log.info("세번째 조회 ----------------");
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null,
-                Collections.singleton(()-> user.getRole().name()));
+                Collections.singleton(() -> user.getRole().name()));
 
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
         String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
@@ -150,7 +150,7 @@ public class AuthService {
                 .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
         // 사용자 상태 검증 추가
-        if(user.getUserStatus() == UserStatus.PENDING || user.getUserStatus() == UserStatus.INACTIVE) {
+        if (user.getUserStatus() == UserStatus.PENDING || user.getUserStatus() == UserStatus.INACTIVE) {
             throw new WhiplashException(ErrorStatus.USER_NOT_ACTIVATED);
         }
 
