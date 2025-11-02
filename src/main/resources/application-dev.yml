@@ -1,13 +1,13 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/whiplash
-    username: root
-    password: psb011031!
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${RDB_URL}
+    username: ${RDB_USERNAME}
+    password: ${RDB_PASSWORD}
+    driver-class-name: ${RDB_DRIVER_CLASS_NAME}
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
@@ -20,9 +20,11 @@ spring:
       uri: ${MONGO_URI}
 
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
       timeout: 2000ms
+      ssl:
+        enabled: false  # 이 부분 추가!
 
   mail:
     host: ${GMAIL_HOST}

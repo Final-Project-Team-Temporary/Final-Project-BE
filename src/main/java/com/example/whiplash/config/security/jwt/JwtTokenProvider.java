@@ -44,7 +44,7 @@ public class JwtTokenProvider {
 
     public String generateTempSocialToken(User user){
         return Jwts.builder()
-                .setSubject(user.getSocialProvider().name())
+                .setSubject(String.valueOf(user.getKakaoId()))
                 .claim("userId", user.getId())
                 .claim("kakaoId", user.getKakaoId())
                 .claim("status", user.getUserStatus())

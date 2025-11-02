@@ -186,7 +186,7 @@ public class AuthService {
 
         refreshTokenService.saveRefreshToken(newRefreshToken);
 
-        return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER, tempUser.getName());
+        return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER);
 
     }
 
