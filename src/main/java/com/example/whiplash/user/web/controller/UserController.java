@@ -1,4 +1,4 @@
-package com.example.whiplash.user.controller;
+package com.example.whiplash.user.web.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
 import com.example.whiplash.global.util.SecurityContextUtils;

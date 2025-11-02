@@ -96,7 +96,7 @@ public class AuthService {
 
     @Transactional
     public TokenResponseDTO login(LoginRequestDTO loginRequestDTO) {
-        User user = userRepository.findByEmail(loginRequestDTO.getEmail())
+        User user = userRepository.findByEmail(loginRequestDTO.email())
                 .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
         log.info("첫번째 조회 ----------------");
@@ -107,7 +107,7 @@ public class AuthService {
 
         log.info("두번째 조회 ----------------");
 
-        if(!passwordEncoder.matches(loginRequestDTO.getPassword(), user.getPassword())) {
+        if(!passwordEncoder.matches(loginRequestDTO.password(), user.getPassword())) {
             throw new WhiplashException(ErrorStatus.INVALID_PASSWORD);
         }
         log.info("세번째 조회 ----------------");

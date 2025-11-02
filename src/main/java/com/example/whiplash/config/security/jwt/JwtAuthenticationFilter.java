@@ -51,6 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 공개 API 경로들
         String[] excludePaths = {
+                "/api/login",
                 "/api/auth/login",
                 "/api/auth/register",
                 "/api/auth/refresh",

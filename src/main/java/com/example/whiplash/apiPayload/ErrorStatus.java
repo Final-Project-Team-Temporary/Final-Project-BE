@@ -10,6 +10,7 @@ public enum ErrorStatus {
     UNAUTHORIZED("E001", "인증이 필요합니다"),
     INVALID_TOKEN("E002", "유효하지 않은 토큰입니다"),
     INVALID_PASSWORD("E003", "비밀번호가 일치하지 않습니다."),
+    FORBIDDEN("E004", "접근 권한이 없습니다"),
 
     // 사용자 관련
     USER_NOT_FOUND("U401", "사용자를 찾을 수 없습니다"),
