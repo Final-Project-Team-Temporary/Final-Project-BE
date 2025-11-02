@@ -1,4 +1,4 @@
-package com.example.whiplash.article.controller;
+package com.example.whiplash.article.web.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
 import com.example.whiplash.article.domain.document.SummaryStatus;
@@ -19,7 +19,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/articles")
-public class ArticleController {
+public class ArticleLoadController {
 
     private final ArticleQueryService articleQueryService;
 
