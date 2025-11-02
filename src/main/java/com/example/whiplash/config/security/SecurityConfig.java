@@ -20,6 +20,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+import org.springframework.security.config.Customizer;
 
 @EnableWebSecurity
 @Configuration
@@ -54,36 +58,24 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginAuthenticationFilter loginAuthenticationFilter) throws Exception {
-        http
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authorizeHttpRequests(
-                        (requests) -> requests
-                                .requestMatchers(
-                                        "/health",
-                                        "/api/auth/register",
-                                        "/api/auth/login",
-                                        "/api/login",
-                                        "/api/auth/refresh",
-                                        "/api/articles/**",
-                                        "/swagger-ui/**",
-                                        "/kakao_login_medium_narrow.png",
-                                        "/v3/api-docs/**",
-                                        "/login/page",
-                                        "/callback",
-                                        "/login/naver",
-                                        "/loginNaver",
-                                        "/naver.png",
-                                        "/callback/naver").permitAll()
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/api/auth/profile-setup").hasRole("TEMP_USER")
-                                .anyRequest().authenticated()
-                )
-                .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests((requests) -> requests.requestMatchers("/api/auth/**", "/health", "/api/auth/register", "/api/auth/login", "/api/login", "/api/auth/refresh", "/api/articles/**", "/swagger-ui/**", "/kakao_login_medium_narrow.png", "/v3/api-docs/**", "/login/page", "/callback", "/login/naver", "/loginNaver", "/naver.png", "/callback/naver").permitAll().requestMatchers("/admin/**").hasRole("ADMIN").requestMatchers("/api/auth/profile-setup").hasRole("TEMP_USER").anyRequest().authenticated()).csrf(AbstractHttpConfigurer::disable).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).addFilterBefore(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).cors(Customizer.withDefaults()); // ✅ enable CORS
 
         return http.build();
     }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin("http://localhost:3000");
+        config.addAllowedOrigin("https://v0-financial-learning-platform-35hk3tcdo.vercel.app/");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+
+
 }
