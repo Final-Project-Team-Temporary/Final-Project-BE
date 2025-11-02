@@ -66,6 +66,9 @@ node_modules/
 
 actions-runner/
 
+# Environment config files
+application-dev.yml
+
 # Task files
 tasks.json
 tasks/ 
