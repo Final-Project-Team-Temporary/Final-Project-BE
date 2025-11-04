@@ -1,7 +1,7 @@
 package com.example.whiplash.user.domain.profile;
 
 
-import com.example.whiplash.article.domain.document.Category;
+import com.example.whiplash.article.summary.domain.document.Category;
 import com.example.whiplash.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

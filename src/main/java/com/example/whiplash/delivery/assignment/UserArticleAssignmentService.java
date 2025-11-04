@@ -1,7 +1,7 @@
 package com.example.whiplash.delivery.assignment;
 
-import com.example.whiplash.article.domain.entity.UserArticleAssignment;
-import com.example.whiplash.article.repository.UserArticleAssignmentRepository;
+import com.example.whiplash.article.original.domain.entity.UserArticleAssignment;
+import com.example.whiplash.article.original.repository.UserArticleAssignmentRepository;
 import com.example.whiplash.domain.entity.history.email.EmailSendStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

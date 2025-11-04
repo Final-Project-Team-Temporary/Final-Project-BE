@@ -1,6 +1,6 @@
 package com.example.whiplash.delivery.orchestrator;
 
-import com.example.whiplash.article.domain.entity.UserArticleAssignment;
+import com.example.whiplash.article.original.domain.entity.UserArticleAssignment;
 import com.example.whiplash.delivery.assignment.UserArticleAssignmentService;
 import com.example.whiplash.delivery.email.EmailSendingService;
 import com.example.whiplash.domain.entity.history.email.EmailSendStatus;

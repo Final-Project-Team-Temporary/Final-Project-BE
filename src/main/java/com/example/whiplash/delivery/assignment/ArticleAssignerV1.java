@@ -1,10 +1,10 @@
 package com.example.whiplash.delivery.assignment;
 
-import com.example.whiplash.article.domain.document.Category;
-import com.example.whiplash.article.domain.document.SummarizedArticle;
-import com.example.whiplash.article.domain.entity.UserArticleAssignment;
-import com.example.whiplash.article.repository.SummarizedArticleRepository;
-import com.example.whiplash.article.repository.UserArticleAssignmentRepository;
+import com.example.whiplash.article.summary.domain.document.Category;
+import com.example.whiplash.article.summary.domain.document.SummarizedArticle;
+import com.example.whiplash.article.original.domain.entity.UserArticleAssignment;
+import com.example.whiplash.article.summary.repository.SummarizedArticleRepository;
+import com.example.whiplash.article.original.repository.UserArticleAssignmentRepository;
 import com.example.whiplash.domain.entity.history.email.EmailSendStatus;
 import com.example.whiplash.domain.entity.history.email.SummaryLevel;
 import com.example.whiplash.domain.repository.InvestorProfileRepository;
