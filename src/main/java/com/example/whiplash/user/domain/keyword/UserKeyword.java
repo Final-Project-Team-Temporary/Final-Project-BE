@@ -11,6 +11,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserKeyword {
+    private static final int DEFAULT_PRIORITY = 0;
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_keyword_id")
     private Long id;
@@ -34,7 +36,7 @@ public class UserKeyword {
                 .user(user)
                 .keyword(keyword)
                 .keywordName(keyword.getName())
-                .priority(0)
+                .priority(DEFAULT_PRIORITY)
                 .build();
     }
 
