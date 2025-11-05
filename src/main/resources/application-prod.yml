@@ -60,6 +60,10 @@ redis:
   key:
     stream-key: ${REDIS_STREAM_KEY}
     dedup-key: ${REDIS_DEDUP_KEY}
+    recommend:
+      keyword-recommend: ${REDIS_KEYWORD_RECOMMEND_CACHE_PREFIX}
+      common-recommend: ${REDIS_COMMON_RECOMMEND_CACHE_KEY}
+      stream-key: ${REDIS_RECOMMEND_STREAM_KEY}
 
 logging:
   level:

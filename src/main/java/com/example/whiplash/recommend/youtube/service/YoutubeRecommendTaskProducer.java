@@ -2,6 +2,8 @@ package com.example.whiplash.recommend.youtube.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,7 +21,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Service
 public class YoutubeRecommendTaskProducer {
-    private static final String STREAM_KEY = "youtube-recommend-stream";
+    @Value("${redis.key.recommend.stream-key}")
+    private String STREAM_KEY;
 
     private final RedisTemplate<String, Object> redisTemplate;
 

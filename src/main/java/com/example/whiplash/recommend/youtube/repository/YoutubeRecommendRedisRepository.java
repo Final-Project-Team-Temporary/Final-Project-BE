@@ -3,6 +3,8 @@ package com.example.whiplash.recommend.youtube.repository;
 import com.example.whiplash.recommend.youtube.domain.YoutubeVideo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -18,8 +20,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Repository
 public class YoutubeRecommendRedisRepository {
-    private static final String KEYWORD_RECOMMEND_PREFIX = "youtube:keyword:";
-    private static final String COMMON_RECOMMEND_KEY = "youtube:common";
+    @Value("${redis.key.recommend.keyword-recommend}")
+    private String KEYWORD_RECOMMEND_PREFIX;
+    @Value("${redis.key.recommend.common-recommend}")
+    private String COMMON_RECOMMEND_KEY;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
