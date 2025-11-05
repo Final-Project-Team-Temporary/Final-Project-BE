@@ -1,6 +1,5 @@
 package com.example.whiplash.term.entity;
 
-import com.example.whiplash.article.domain.document.Article;
 import com.example.whiplash.domain.entity.BaseEntity;
 import com.example.whiplash.user.domain.User;
 import jakarta.persistence.*;
