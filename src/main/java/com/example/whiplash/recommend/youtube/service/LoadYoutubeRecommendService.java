@@ -112,8 +112,9 @@ public class LoadYoutubeRecommendService {
 		List<YoutubeVideo> videosForKeyword = youtubeRecommendRedisRepository.findByKeywordId(keywordId);
 
 		if (videosForKeyword.isEmpty()) {
-			// 비동기로 Redis Streams에 키워드 ID 발행
-			youtubeRecommendTaskProducer.produceKeywordRecommendTask(keywordId);
+			// 비동기로 Redis Streams에 키워드 ID 및 이름 발행
+			String keywordName = userKeyword.getKeyword().getName();
+			youtubeRecommendTaskProducer.produceKeywordRecommendTask(keywordId, keywordName);
 		} else {
 			// 중복 제거하면서 추가
 			for (YoutubeVideo video : videosForKeyword) {
