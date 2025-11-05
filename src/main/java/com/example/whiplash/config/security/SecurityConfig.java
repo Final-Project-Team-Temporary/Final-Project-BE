@@ -67,7 +67,7 @@ public class SecurityConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedOrigin("https://v0-financial-learning-platform-35hk3tcdo.vercel.app/");
+        config.addAllowedOrigin("https://v0-financial-learning-platform.vercel.app/");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(true);
