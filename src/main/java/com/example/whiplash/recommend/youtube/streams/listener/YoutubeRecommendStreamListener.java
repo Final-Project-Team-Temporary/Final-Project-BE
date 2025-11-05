@@ -1,6 +1,6 @@
 package com.example.whiplash.recommend.youtube.streams.listener;
 
-import com.example.whiplash.recommend.youtube.service.YoutubeRecommendStorageService;
+import com.example.whiplash.recommend.youtube.repository.YoutubeRecommendRedisRepository;
 import com.example.whiplash.recommend.youtube.streams.dto.YoutubeRecommendStreamMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Map;
 @Component
 public class YoutubeRecommendStreamListener implements StreamListener<String, MapRecord<String, String, String>> {
 
-    private final YoutubeRecommendStorageService storageService;
+    private final YoutubeRecommendRedisRepository repository;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -56,7 +56,7 @@ public class YoutubeRecommendStreamListener implements StreamListener<String, Ma
                     message.keywordId(), message.videos().size());
 
             // Redis에 추천 영상 저장
-            storageService.storeRecommendations(message.getKeywordIdAsLong(), message.videos());
+            repository.storeRecommendations(message.getKeywordIdAsLong(), message.videos());
 
             log.info("Successfully processed recommendation for keywordId={}", message.keywordId());
 
