@@ -2,7 +2,7 @@ package com.example.whiplash.recommend.youtube.web.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
 import com.example.whiplash.global.util.SecurityContextUtils;
-import com.example.whiplash.recommend.youtube.service.YoutubeRecommendService;
+import com.example.whiplash.recommend.youtube.service.LoadYoutubeRecommendService;
 import com.example.whiplash.recommend.youtube.web.dto.response.YoutubeRecommendResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class LoadYoutubeRecommendController {
 
-    private final YoutubeRecommendService youtubeRecommendService;
+    private final LoadYoutubeRecommendService loadYoutubeRecommendService;
 
     /**
      * 키워드 기반 유튜브 영상 추천 조회
@@ -34,7 +34,7 @@ public class LoadYoutubeRecommendController {
     public ApiResponse<YoutubeRecommendResponse> getRecommendations() {
         log.info("유튜브 영상 추천 요청 수신");
 
-        YoutubeRecommendResponse response = youtubeRecommendService.getKeywordBasedRecommendations(
+        YoutubeRecommendResponse response = loadYoutubeRecommendService.getKeywordBasedRecommendations(
                 SecurityContextUtils.getCurrentUserEmail()
         );
 

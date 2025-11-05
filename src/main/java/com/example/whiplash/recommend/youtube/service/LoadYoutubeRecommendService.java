@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
-public class YoutubeRecommendService {
+public class LoadYoutubeRecommendService {
 	private static final int MINIMUM_RECOMMEND_COUNT = 10;
 
 	private final UserRepository userRepository;
