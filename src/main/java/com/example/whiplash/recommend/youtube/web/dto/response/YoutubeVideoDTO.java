@@ -1,27 +1,48 @@
 package com.example.whiplash.recommend.youtube.web.dto.response;
 
 import com.example.whiplash.recommend.youtube.domain.YoutubeVideo;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record YoutubeVideoDTO(
-        String videoId,
+        Integer rank,
         String title,
-        String channelTitle,
-        String thumbnailUrl,
-        String description,
-        Long viewCount,
-        String publishedAt,
-        String duration
+        @JsonProperty("video_id")
+        String videoId,
+        @JsonProperty("video_url")
+        String videoUrl,
+        String channel,
+        @JsonProperty("recommendation_score")
+        Double recommendationScore,
+        @JsonProperty("quality_score")
+        Double qualityScore,
+        @JsonProperty("relevance_score")
+        Double relevanceScore,
+        @JsonProperty("educational_value")
+        Double educationalValue,
+        @JsonProperty("content_accuracy")
+        Double contentAccuracy,
+        @JsonProperty("analysis_summary")
+        String analysisSummary,
+        @JsonProperty("trust_comment")
+        String trustComment,
+        VideoMetricsDTO metrics
 ) {
     public static YoutubeVideoDTO from(YoutubeVideo video) {
         return new YoutubeVideoDTO(
-                video.getVideoId(),
-                video.getTitle(),
-                video.getChannelTitle(),
-                video.getThumbnailUrl(),
-                video.getDescription(),
-                video.getViewCount(),
-                video.getPublishedAt(),
-                video.getDuration()
+            video.getRank(),
+            video.getTitle(),
+            video.getVideoId(),
+            video.getVideoUrl(),
+            video.getChannel(),
+            video.getRecommendationScore(),
+            video.getQualityScore(),
+            video.getRelevanceScore(),
+            video.getEducationalValue(),
+            video.getContentAccuracy(),
+            video.getAnalysisSummary(),
+            video.getTrustComment(),
+            VideoMetricsDTO.from(video.getMetrics())
         );
     }
 }
+

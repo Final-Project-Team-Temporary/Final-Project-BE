@@ -1,5 +1,6 @@
 package com.example.whiplash.recommend.youtube.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,12 +18,38 @@ import java.io.Serializable;
 public class YoutubeVideo implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String videoId;
+    private Integer rank;
+
     private String title;
-    private String channelTitle;
-    private String thumbnailUrl;
-    private String description;
-    private Long viewCount;
-    private String publishedAt;
-    private String duration;
+
+    @JsonProperty("video_id")
+    private String videoId;
+
+    @JsonProperty("video_url")
+    private String videoUrl;
+
+    private String channel;
+
+    @JsonProperty("recommendation_score")
+    private Double recommendationScore;
+
+    @JsonProperty("quality_score")
+    private Double qualityScore;
+
+    @JsonProperty("relevance_score")
+    private Double relevanceScore;
+
+    @JsonProperty("educational_value")
+    private Double educationalValue;
+
+    @JsonProperty("content_accuracy")
+    private Double contentAccuracy;
+
+    @JsonProperty("analysis_summary")
+    private String analysisSummary;
+
+    @JsonProperty("trust_comment")
+    private String trustComment;
+
+    private VideoMetrics metrics;
 }
