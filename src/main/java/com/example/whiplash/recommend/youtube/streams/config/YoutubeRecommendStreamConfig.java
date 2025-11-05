@@ -3,6 +3,8 @@ package com.example.whiplash.recommend.youtube.streams.config;
 import com.example.whiplash.recommend.youtube.streams.listener.YoutubeRecommendStreamListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -23,9 +25,12 @@ import java.time.Duration;
 @Configuration
 public class YoutubeRecommendStreamConfig {
 
-    private static final String STREAM_KEY = "youtube-recommend-result-stream";
-    private static final String CONSUMER_GROUP = "youtube-recommend-consumer-group";
-    private static final String CONSUMER_NAME = "youtube-recommend-consumer";
+    @Value("${redis.key.recommend-result.stream-key}")
+    private String STREAM_KEY = "youtube-recommend-result-stream";
+    @Value("${redis.key.recommend-result.consumer-group}")
+    private String CONSUMER_GROUP = "youtube-recommend-consumer-group";
+    @Value("${redis.key.recommend-result.consumer-name}")
+    private String CONSUMER_NAME = "youtube-recommend-consumer";
 
     private final RedisConnectionFactory redisConnectionFactory;
     private final YoutubeRecommendStreamListener streamListener;

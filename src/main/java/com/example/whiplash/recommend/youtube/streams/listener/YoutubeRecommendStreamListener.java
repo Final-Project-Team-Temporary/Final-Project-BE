@@ -1,5 +1,6 @@
 package com.example.whiplash.recommend.youtube.streams.listener;
 
+import com.example.whiplash.recommend.youtube.domain.YoutubeVideo;
 import com.example.whiplash.recommend.youtube.repository.YoutubeRecommendRedisRepository;
 import com.example.whiplash.recommend.youtube.streams.dto.YoutubeRecommendStreamMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +10,7 @@ import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,8 +48,8 @@ public class YoutubeRecommendStreamListener implements StreamListener<String, Ma
                     objectMapper.readValue(
                             videosJson,
                             objectMapper.getTypeFactory().constructCollectionType(
-                                    java.util.List.class,
-                                    com.example.whiplash.recommend.youtube.domain.YoutubeVideo.class
+                                    List.class,
+                                    YoutubeVideo.class
                             )
                     )
             );
