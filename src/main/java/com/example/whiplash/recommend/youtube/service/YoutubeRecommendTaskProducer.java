@@ -30,19 +30,21 @@ public class YoutubeRecommendTaskProducer {
      * 키워드 ID를 Redis Streams에 비동기로 발행
      *
      * @param keywordId 키워드 ID
+     * @param keywordName 키워드 이름
      */
     @Async
-    public void produceKeywordRecommendTask(Long keywordId) {
+    public void produceKeywordRecommendTask(Long keywordId, String keywordName) {
         try {
             Map<String, String> body = new HashMap<>();
             body.put("keywordId", keywordId.toString());
+            body.put("keywordName", keywordName);
             body.put("timestamp", LocalDateTime.now().toString());
 
             RecordId recordId = redisTemplate.opsForStream()
                     .add(ObjectRecord.create(STREAM_KEY, body));
 
-            log.info("Published keywordId={} to stream with recordId={}, stream-key: {}",
-                    keywordId, recordId, STREAM_KEY);
+            log.info("Published keywordId={}, keywordName='{}' to stream with recordId={}, stream-key: {}",
+                    keywordId, keywordName, recordId, STREAM_KEY);
         } catch (Exception e) {
             log.error("Failed to publish keywordId={} to Redis Streams", keywordId, e);
         }
