@@ -10,6 +10,7 @@ import com.example.whiplash.article.original.repository.ArticleRepository;
 import com.example.whiplash.article.summary.repository.SummarizedArticleRepository;
 import com.example.whiplash.article.original.web.dto.response.ArticleDetailResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleListItemResponse;
+import com.example.whiplash.article.original.web.dto.response.ArticleResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,13 @@ public class ArticleQueryService {
     public Page<ArticleListItemResponse> getArticleList(Pageable pageable) {
         Page<Article> articles = articleRepository.findBySummaryStatus(SummaryStatus.COMPLETED, pageable);
         return articles.map(ArticleConverter::toArticleListItemResponse);
+    }
+
+    public ArticleResponse getOriginalArticle(String articleId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new WhiplashException(ErrorStatus.ARTICLE_NOT_FOUND));
+
+        return ArticleConverter.toArticleResponse(article);
     }
 
     public ArticleDetailResponse getArticleDetail(String articleId) {

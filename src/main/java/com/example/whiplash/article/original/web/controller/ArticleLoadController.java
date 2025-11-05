@@ -3,9 +3,9 @@ package com.example.whiplash.article.original.web.controller;
 import com.example.whiplash.apiPayload.ApiResponse;
 import com.example.whiplash.article.original.domain.document.SummaryStatus;
 import com.example.whiplash.article.original.service.ArticleQueryService;
-import com.example.whiplash.article.original.web.dto.response.ArticleDetailResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleListItemResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleListResponse;
+import com.example.whiplash.article.original.web.dto.response.ArticleResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,13 +35,14 @@ public class ArticleLoadController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
+
     @GetMapping("/{articleId}")
-    public ResponseEntity<ApiResponse<ArticleDetailResponse>> getArticleDetail(
+    public ResponseEntity<ApiResponse<ArticleResponse>> getArticle(
             @PathVariable String articleId) {
 
-        ArticleDetailResponse articleDetail = articleQueryService.getArticleDetail(articleId);
+        ArticleResponse article = articleQueryService.getOriginalArticle(articleId);
 
-        return ResponseEntity.ok(ApiResponse.onSuccess(articleDetail));
+        return ResponseEntity.ok(ApiResponse.onSuccess(article));
     }
 
     /**
