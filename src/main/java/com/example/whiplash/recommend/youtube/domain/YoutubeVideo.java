@@ -22,33 +22,24 @@ public class YoutubeVideo implements Serializable {
 
     private String title;
 
-    @JsonProperty("video_id")
     private String videoId;
 
-    @JsonProperty("video_url")
     private String videoUrl;
 
     private String channel;
 
-    @JsonProperty("recommendation_score")
     private Double recommendationScore;
 
-    @JsonProperty("quality_score")
     private Double qualityScore;
 
-    @JsonProperty("relevance_score")
     private Double relevanceScore;
 
-    @JsonProperty("educational_value")
     private Double educationalValue;
 
-    @JsonProperty("content_accuracy")
     private Double contentAccuracy;
 
-    @JsonProperty("analysis_summary")
     private String analysisSummary;
 
-    @JsonProperty("trust_comment")
     private String trustComment;
 
     private VideoMetrics metrics;
