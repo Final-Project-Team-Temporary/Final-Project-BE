@@ -18,15 +18,11 @@ import java.io.Serializable;
 public class VideoMetrics implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    @JsonProperty("view_count")
     private String viewCount;
 
-    @JsonProperty("like_count")
     private String likeCount;
 
-    @JsonProperty("comment_count")
     private Integer commentCount;
 
-    @JsonProperty("positive_ratio")
     private Double positiveRatio;
 }
