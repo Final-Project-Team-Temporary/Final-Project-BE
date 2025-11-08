@@ -40,13 +40,13 @@ public class SummarizedArticle {
                                            LocalDateTime summarizedAt,
                                            LocalDateTime publishedAt) {
         return SummarizedArticle.builder()
-                .originalArticleId(originalArticleId)
-                .title(title)
-                .category(category)
-                .summarizedContent(summarizedContent)
-                .summaryLevel(summaryLevel)
-                .summarizedAt(summarizedAt)
-                .publishedAt(publishedAt)
-                .build();
+            .originalArticleId(originalArticleId)
+            .title(title)
+            .category(category == null ? Category.GENERAL : category)
+            .summarizedContent(summarizedContent)
+            .summaryLevel(summaryLevel)
+            .summarizedAt(summarizedAt)
+            .publishedAt(publishedAt)
+            .build();
     }
 }

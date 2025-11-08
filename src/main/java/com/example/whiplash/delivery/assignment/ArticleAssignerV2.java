@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import com.example.whiplash.article.original.domain.entity.UserArticleAssignment;
 import com.example.whiplash.article.original.repository.UserArticleAssignmentRepository;
-import com.example.whiplash.article.summary.domain.document.Category;
 import com.example.whiplash.article.summary.domain.document.SummarizedArticle;
 import com.example.whiplash.article.summary.repository.SummarizedArticleRepository;
 import com.example.whiplash.domain.entity.history.email.EmailSendStatus;
@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
+@Primary
 @Component("ArticleAssignerV2")
 public class ArticleAssignerV2 implements ArticleAssigner{
     private final SummarizedArticleRepository summarizedArticleRepository;
@@ -90,12 +91,12 @@ public class ArticleAssignerV2 implements ArticleAssigner{
                 .filter(isTitleContainsKeywords(userKeywords))
                 // 난이도 일치
                 .filter(isLevelEqualsTo(userSummaryLevel))
-                .filter(isAlreadyAssigned(assignedSummaryIds))    //기사 중복 할당 방지
+                .filter(isNotDuplicatedAssignment(assignedSummaryIds))    //기사 중복 할당 방지
                 .limit(3)
                 .collect(Collectors.toList());
     }
 
-    private static Predicate<SummarizedArticle> isAlreadyAssigned(List<String> assignedSummaryIds) {
+    private static Predicate<SummarizedArticle> isNotDuplicatedAssignment(List<String> assignedSummaryIds) {
         return summary -> !assignedSummaryIds.contains(summary.getId());
     }
 
