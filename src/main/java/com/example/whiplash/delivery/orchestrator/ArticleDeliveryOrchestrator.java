@@ -42,10 +42,11 @@ public class ArticleDeliveryOrchestrator {
             List<String> summaryIdsByUser = assignments.stream()
                     .map(UserArticleAssignment::getSummarizedArticleId)
                     .toList();
-            List<Long> assignmentIdsByUser = assignments.stream()
-                    .map(UserArticleAssignment::getId)
-                    .toList();
             emailService.sendSummarizedArticlesToUser(userId, summaryIdsByUser);
+
+            List<Long> assignmentIdsByUser = assignments.stream()
+                .map(UserArticleAssignment::getId)
+                .toList();
             assignmentService.updateAssignmentStatus(assignmentIdsByUser, EmailSendStatus.SENT);
         });
     }
