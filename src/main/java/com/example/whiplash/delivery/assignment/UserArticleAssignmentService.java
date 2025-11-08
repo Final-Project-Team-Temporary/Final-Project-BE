@@ -5,6 +5,8 @@ import com.example.whiplash.article.original.repository.UserArticleAssignmentRep
 import com.example.whiplash.domain.entity.history.email.EmailSendStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class UserArticleAssignmentService {
+    @Qualifier("ArticleAssignerV2")
     private final ArticleAssigner assigner;
     private final UserArticleAssignmentRepository assignmentRepository;
 

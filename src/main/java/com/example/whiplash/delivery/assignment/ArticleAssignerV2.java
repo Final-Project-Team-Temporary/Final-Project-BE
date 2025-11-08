@@ -1,29 +1,38 @@
 package com.example.whiplash.delivery.assignment;
 
-import com.example.whiplash.article.summary.domain.document.Category;
-import com.example.whiplash.article.summary.domain.document.SummarizedArticle;
-import com.example.whiplash.article.original.domain.entity.UserArticleAssignment;
-import com.example.whiplash.article.summary.repository.SummarizedArticleRepository;
-import com.example.whiplash.article.original.repository.UserArticleAssignmentRepository;
-import com.example.whiplash.domain.entity.history.email.EmailSendStatus;
-import com.example.whiplash.domain.entity.history.email.SummaryLevel;
-import com.example.whiplash.domain.repository.InvestorProfileRepository;
-import com.example.whiplash.user.repository.keyword.UserKeywordRepository;
-import com.example.whiplash.user.domain.User;
-import com.example.whiplash.user.repository.user.UserRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Component;
+
+import com.example.whiplash.article.original.domain.entity.UserArticleAssignment;
+import com.example.whiplash.article.original.repository.UserArticleAssignmentRepository;
+import com.example.whiplash.article.summary.domain.document.Category;
+import com.example.whiplash.article.summary.domain.document.SummarizedArticle;
+import com.example.whiplash.article.summary.repository.SummarizedArticleRepository;
+import com.example.whiplash.domain.entity.history.email.EmailSendStatus;
+import com.example.whiplash.domain.entity.history.email.SummaryLevel;
+import com.example.whiplash.domain.repository.InvestorProfileRepository;
+import com.example.whiplash.user.domain.User;
+import com.example.whiplash.user.repository.keyword.UserKeywordRepository;
+import com.example.whiplash.user.repository.user.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * ArticleAssignerV2
+ *
+ * V1과 비교
+ * - 필터링할 때 '사용자 관심 카테고리'는 제외한다
+ */
 @Slf4j
 @RequiredArgsConstructor
-@Component("ArticleAssignerV1")
-public class ArticleAssignerV1 implements ArticleAssigner{
+@Component("ArticleAssignerV2")
+public class ArticleAssignerV2 implements ArticleAssigner{
     private final SummarizedArticleRepository summarizedArticleRepository;
     private final UserRepository userRepository;
     private final UserKeywordRepository userKeywordRepository;
@@ -71,18 +80,14 @@ public class ArticleAssignerV1 implements ArticleAssigner{
          변경: insert ignore into를 활용
          **/
         List<String> userKeywords = extractKeywordsFromUser(user);
-        List<Category> userInterestCategories = extractInterestCategoriesFromUser(user);
         SummaryLevel userSummaryLevel = user.getSummaryLevel();
         List<String> assignedSummaryIds = getAlreadyAssignedSummaryIdsByUser(user);
 
         log.info("사용자: {}", user.getName());
         log.info("유저 키워드: {}", userKeywords);
-        log.info("유저 관심 카테고리: {}", userInterestCategories);
         return todaySummaries.stream()
                 // 제목에 키워드 포함
                 .filter(isTitleContainsKeywords(userKeywords))
-                // 카테고리가 일치
-                .filter(isCategoryIncludedIn(userInterestCategories))
                 // 난이도 일치
                 .filter(isLevelEqualsTo(userSummaryLevel))
                 .filter(isAlreadyAssigned(assignedSummaryIds))    //기사 중복 할당 방지
@@ -98,22 +103,15 @@ public class ArticleAssignerV1 implements ArticleAssigner{
         return summary -> summary.getSummaryLevel().equals(userSummaryLevel);
     }
 
-    private static Predicate<SummarizedArticle> isCategoryIncludedIn(List<Category> userInterestCategories) {
-        return summary -> userInterestCategories.contains(summary.getCategory());
-    }
-
     private static Predicate<SummarizedArticle> isTitleContainsKeywords(List<String> userKeywords) {
-        return summary -> userKeywords.stream().anyMatch(keyword -> summary.getTitle().contains(keyword));
+        return summary -> userKeywords.stream()
+            .anyMatch(keyword -> summary.getTitle().contains(keyword));
     }
 
     private List<String> getAlreadyAssignedSummaryIdsByUser(User user) {
         return userArticleAssignmentRepository.findAllByUser(user).stream()
                 .map(userArticleAssignment -> userArticleAssignment.getSummarizedArticleId())
                 .collect(Collectors.toList());
-    }
-
-    private List<Category> extractInterestCategoriesFromUser(User user) {
-        return investorProfileRepository.findByUser(user).orElseThrow().getInterestCategories();
     }
 
     private List<String> extractKeywordsFromUser(User user) {
