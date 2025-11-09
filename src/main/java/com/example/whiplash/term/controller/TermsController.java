@@ -1,9 +1,13 @@
 package com.example.whiplash.term.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
+import com.example.whiplash.term.dto.request.TermAddDto;
+import com.example.whiplash.term.service.TermService;
+import com.example.whiplash.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -11,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/terms")
 @Tag(name = "용어 관련 API",description = "용어 저장/조회/삭제 API")
 public class TermsController {
+
+    private final TermService termService;
 
     @PostMapping("/explain")
     @Operation(summary = "용어 AI 설명요청", description = "용어에 대한 AI 설명을 요청한다.")
@@ -20,7 +26,9 @@ public class TermsController {
 
     @PostMapping("")
     @Operation(summary = "용어 저장", description = "용어를 나의 용어사전에 저장합니다.")
-    public ApiResponse<?> addTerms(){
+    public ApiResponse<?> addTerms(@AuthenticationPrincipal User user, @RequestBody TermAddDto termAddDto) {
+
+        termService.addTerm(termAddDto, user.getId());
         return null;
     }
 

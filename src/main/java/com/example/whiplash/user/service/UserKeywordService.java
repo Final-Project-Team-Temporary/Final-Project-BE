@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import com.example.whiplash.user.web.dto.response.UserKeywordListResponse;
 
 import lombok.RequiredArgsConstructor;
 
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
@@ -30,14 +32,19 @@ public class UserKeywordService {
 	private final UserRepository userRepository;
 	private final KeywordRepository keywordRepository;
 	private final UserKeywordRepository userKeywordRepository;
+	private final UserService userService;
 
-	public UserKeywordListResponse getUserKeywords(Optional<String> currentUserEmail) {
-		checkUserIsAuthenticated(currentUserEmail);
+	public UserKeywordListResponse getUserKeywords(Optional<Long> currentUserId) {
+		checkUserIsAuthenticated(currentUserId);
 
-		User user = userRepository.findByEmail(currentUserEmail.get())
+		log.info("current user: {}", currentUserId.get());
+
+		User user = userRepository.findById(currentUserId.get())
 			.orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
 		List<UserKeyword> userKeywords = userKeywordRepository.findAllByUserOrderByPriority(user);
+
+		log.info("user keywords: {}", userKeywords.size());
 
 		List<UserKeywordDTO> keywordDTOs = userKeywords.stream()
 			.map(uk -> UserKeywordDTO.of(
@@ -53,10 +60,10 @@ public class UserKeywordService {
 	@Transactional
 	public UserKeywordBulkCreateResponse createUserKeywords(
 		UserKeywordBulkCreateRequest request,
-		Optional<String> currentUserEmail) {
-		checkUserIsAuthenticated(currentUserEmail);
+		Optional<Long> currentUserId) {
+		checkUserIsAuthenticated(currentUserId);
 
-		User user = userRepository.findByEmail(currentUserEmail.get())
+		User user = userRepository.findById(currentUserId.get())
 			.orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
 		List<UserKeyword> createdKeywords = new ArrayList<>();
@@ -89,10 +96,10 @@ public class UserKeywordService {
 	@Transactional
 	public void deleteUserKeywords(
 		UserKeywordDeleteRequest request,
-		Optional<String> currentUserEmail) {
-		checkUserIsAuthenticated(currentUserEmail);
+		Optional<Long> currentUserId) {
+		checkUserIsAuthenticated(currentUserId);
 
-		User user = userRepository.findByEmail(currentUserEmail.get())
+		User user = userRepository.findById(currentUserId.get())
 			.orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
 		List<UserKeyword> userKeywords = userKeywordRepository.findAllById(request.userKeywordIds());
@@ -111,8 +118,8 @@ public class UserKeywordService {
 		}
 	}
 
-	private static void checkUserIsAuthenticated(Optional<String> currentUserEmail) {
-		if (currentUserEmail.isEmpty()) {
+	private static void checkUserIsAuthenticated(Optional<Long> currentUserId) {
+		if (currentUserId.isEmpty()) {
 			throw new WhiplashException(ErrorStatus.UNAUTHORIZED);
 		}
 	}

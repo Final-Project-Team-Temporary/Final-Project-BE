@@ -91,11 +91,11 @@ public class AuthService {
             throw new WhiplashException(ErrorStatus.USER_NOT_ACTIVATED);
         }
 
-        String userId = user.getSocialProvider().name() + "_" + user.getKakaoId();
+        // 모든 사용자 타입에 대해 user.getId()를 사용
+        String userId = String.valueOf(user.getId());
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userId, null, Collections.singletonList(() -> user.getRole().name()));
-
 
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
         String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
@@ -123,7 +123,8 @@ public class AuthService {
         }
         log.info("세번째 조회 ----------------");
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null,
+        // 이메일 로그인도 user.getId()를 사용하여 일관성 유지
+        Authentication authentication = new UsernamePasswordAuthenticationToken(String.valueOf(user.getId()), null,
                 Collections.singleton(() -> user.getRole().name()));
 
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
@@ -144,9 +145,10 @@ public class AuthService {
         // validateRefreshToken에서 예외를 던지므로 별도 if 문 불필요
         refreshTokenService.validateRefreshToken(refreshToken);
 
-        String email = jwtTokenProvider.getUserIdFromToken(refreshToken);
+        String userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
 
-        User user = userRepository.findByEmail(email)
+        // userId로 사용자 조회 (일관성 유지)
+        User user = userRepository.findById(Long.parseLong(userId))
                 .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
         // 사용자 상태 검증 추가
@@ -154,7 +156,8 @@ public class AuthService {
             throw new WhiplashException(ErrorStatus.USER_NOT_ACTIVATED);
         }
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null,
+        // user.getId()를 사용하여 일관성 유지
+        Authentication authentication = new UsernamePasswordAuthenticationToken(String.valueOf(user.getId()), null,
                 Collections.singleton(() -> user.getRole().name()));
 
         String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
@@ -168,7 +171,8 @@ public class AuthService {
     @Transactional
     public TokenResponseDTO completeRegistration(String userName, ProfileRegisterDTO request) {
 
-        User tempUser = userRepository.findByKakaoId(Long.parseLong(userName))
+        // userName은 이제 user.getId()로 통일됨
+        User tempUser = userRepository.findById(Long.parseLong(userName))
                 .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
         InvestorProfile investorProfile = InvestorProfileConverter.toInvestorProfile(request, tempUser);
@@ -178,7 +182,8 @@ public class AuthService {
         tempUser.activateUser();
         tempUser.updateRole(Role.USER);
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(String.valueOf(tempUser.getKakaoId()), null,
+        // user.getId()를 사용하여 일관성 유지
+        Authentication authentication = new UsernamePasswordAuthenticationToken(String.valueOf(tempUser.getId()), null,
                 Collections.singleton(() -> tempUser.getRole().name()));
 
         String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);

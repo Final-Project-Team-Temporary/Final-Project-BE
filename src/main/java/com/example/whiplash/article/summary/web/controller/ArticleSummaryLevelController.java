@@ -26,7 +26,7 @@ public class ArticleSummaryLevelController {
 
         SummaryLevelUpdateResponse response = articleSummaryLevelService.updateSummaryLevel(
                 request,
-                SecurityContextUtils.getCurrentUserEmail()
+                SecurityContextUtils.getCurrentUserId()
         );
 
         return ApiResponse.onSuccess(response);
