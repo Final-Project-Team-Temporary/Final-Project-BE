@@ -23,10 +23,10 @@ public class ArticleSummaryLevelService {
 	@Transactional
 	public SummaryLevelUpdateResponse updateSummaryLevel(
 		SummaryLevelUpdateRequest request,
-		Optional<String> currentUserEmail) {
-		checkUserIsAuthenticated(currentUserEmail);
+		Optional<Long> currentUserId) {
+		checkUserIsAuthenticated(currentUserId);
 
-		User user = userRepository.findByEmail(currentUserEmail.get())
+		User user = userRepository.findById(currentUserId.get())
 			.orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
 		user.updateSummaryLevel(request.summaryLevel());
@@ -34,8 +34,8 @@ public class ArticleSummaryLevelService {
 		return SummaryLevelUpdateResponse.of(user.getId(), user.getSummaryLevel());
 	}
 
-	private static void checkUserIsAuthenticated(Optional<String> currentUserEmail) {
-		if (currentUserEmail.isEmpty()) {
+	private static void checkUserIsAuthenticated(Optional<Long> currentUserId) {
+		if (currentUserId.isEmpty()) {
 			throw new WhiplashException(ErrorStatus.UNAUTHORIZED);
 		}
 	}

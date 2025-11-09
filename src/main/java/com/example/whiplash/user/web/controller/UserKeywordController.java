@@ -26,7 +26,7 @@ public class UserKeywordController {
 	@GetMapping
 	public ApiResponse<UserKeywordListResponse> getUserKeywords() {
 		UserKeywordListResponse response = userKeywordService.getUserKeywords(
-				SecurityContextUtils.getCurrentUserEmail()
+				SecurityContextUtils.getCurrentUserId()
 		);
 		return ApiResponse.onSuccess(response);
 	}
@@ -40,7 +40,7 @@ public class UserKeywordController {
 
 		UserKeywordBulkCreateResponse response = userKeywordService.createUserKeywords(
 				request,
-				SecurityContextUtils.getCurrentUserEmail()
+				SecurityContextUtils.getCurrentUserId()
 		);
 
 		return ApiResponse.onCreated(response);
@@ -57,7 +57,7 @@ public class UserKeywordController {
 
 		userKeywordService.deleteUserKeywords(
 				request,
-				SecurityContextUtils.getCurrentUserEmail()
+				SecurityContextUtils.getCurrentUserId()
 		);
 
 		log.info("사용자 키워드 벌크 삭제 완료");

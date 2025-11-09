@@ -35,7 +35,7 @@ public class LoadYoutubeRecommendController {
         log.info("유튜브 영상 추천 요청 수신");
 
         YoutubeRecommendResponse response = loadYoutubeRecommendService.getKeywordBasedRecommendations(
-                SecurityContextUtils.getCurrentUserEmail()
+                SecurityContextUtils.getCurrentUserId()
         );
 
         log.info("유튜브 영상 추천 완료: totalCount={}, keywordBasedCount={}, commonCount={}",

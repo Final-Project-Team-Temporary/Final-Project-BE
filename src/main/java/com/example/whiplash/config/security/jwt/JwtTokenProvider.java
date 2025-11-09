@@ -31,9 +31,15 @@ public class JwtTokenProvider {
         return generateToken(authentication, jwtProperties.getAccessTokenExpiration());
     }
 
+    /**
+     * 임시 토큰 생성 (이메일 회원가입용)
+     * Subject: User의 DB ID
+     * Claims: email, userId, status, authorities
+     */
     public String generateTempToken(User user){
         return Jwts.builder()
-                .setSubject(user.getEmail())
+                .setSubject(String.valueOf(user.getId()))
+                .claim("email", user.getEmail())
                 .claim("userId", user.getId())
                 .claim("status", user.getUserStatus())
                 .claim("authorities", "TEMP_USER")
@@ -42,9 +48,14 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    /**
+     * 소셜 로그인 임시 토큰 생성 (카카오 회원가입용)
+     * Subject: User의 DB ID
+     * Claims: kakaoId, userId, status, authorities
+     */
     public String generateTempSocialToken(User user){
         return Jwts.builder()
-                .setSubject(String.valueOf(user.getKakaoId()))
+                .setSubject(String.valueOf(user.getId()))
                 .claim("userId", user.getId())
                 .claim("kakaoId", user.getKakaoId())
                 .claim("status", user.getUserStatus())

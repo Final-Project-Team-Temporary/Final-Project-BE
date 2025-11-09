@@ -8,4 +8,7 @@ import java.util.Optional;
 
 public interface InvestorProfileRepository extends JpaRepository<InvestorProfile, Long> {
     Optional<InvestorProfile> findByUser(User user);
+    Optional<InvestorProfile> findByUserId(Long userId);
+
+    Long user(User user);
 }
