@@ -68,6 +68,10 @@ redis:
       stream-key: ${REDIS_RECOMMEND_RESULT_STREAM_KEY}
       consumer-group: ${REDIS_RECOMMEND_RESULT_CONSUMER_GROUP}
       consumer-name: ${REDIS_RECOMMEND_RESULT_CONSUMER_NAME}
+    article-keyword:
+      stream-key: ${REDIS_ARTICLE_KEYWORD_STREAM_KEY}
+      consumer-group: ${REDIS_ARTICLE_KEYWORD_CONSUMER_GROUP}
+      consumer-name: ${REDIS_ARTICLE_KEYWORD_CONSUMER_NAME}
 
 logging:
   level:
