@@ -36,6 +36,7 @@ public class ArticleKeywordStreamListener implements StreamListener<String, MapR
             // AI 서버가 보낼 메시지 형식: {"articleId": "xxx", "terms": "[\"term1\", \"term2\"]"}
             String articleId = messageData.get("articleId");
             String termsJson = messageData.get("terms");
+            log.info("[DEBUG]키워드 스트림 articleId: {} termsJson: {}", articleId, termsJson);
 
             if (articleId == null || termsJson == null) {
                 log.error("Invalid message format: missing articleId or terms. message={}", messageData);
@@ -53,8 +54,6 @@ public class ArticleKeywordStreamListener implements StreamListener<String, MapR
 
             // DTO 생성 및 검증
             ArticleKeywordStreamMessage message = new ArticleKeywordStreamMessage(articleId, terms);
-
-            log.info("Processing article keywords for articleId={}, termCount={}", articleId, terms.size());
 
             // 키워드 처리
             articleKeywordService.saveArticleKeywords(message.articleId(), message.terms());

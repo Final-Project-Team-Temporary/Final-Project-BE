@@ -12,10 +12,6 @@ public record ArticleKeywordStreamMessage(
         List<String> terms
 ) {
     public ArticleKeywordStreamMessage {
-        validate();
-    }
-
-    private void validate() {
         if (articleId == null || articleId.isBlank()) {
             throw new IllegalArgumentException("articleId는 null이거나 비어있을 수 없습니다");
         }
