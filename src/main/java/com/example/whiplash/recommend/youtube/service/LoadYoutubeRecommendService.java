@@ -7,7 +7,7 @@ import com.example.whiplash.recommend.youtube.repository.YoutubeRecommendRedisRe
 import com.example.whiplash.recommend.youtube.web.dto.response.YoutubeRecommendResponse;
 import com.example.whiplash.recommend.youtube.web.dto.response.YoutubeVideoDTO;
 import com.example.whiplash.user.domain.User;
-import com.example.whiplash.user.domain.keyword.UserKeyword;
+import com.example.whiplash.keyword.user.UserKeyword;
 import com.example.whiplash.user.repository.keyword.UserKeywordRepository;
 import com.example.whiplash.user.repository.user.UserRepository;
 

@@ -1,6 +1,6 @@
 package com.example.whiplash.user.repository.keyword;
 
-import com.example.whiplash.user.domain.keyword.UserKeyword;
+import com.example.whiplash.keyword.user.UserKeyword;
 import com.example.whiplash.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 

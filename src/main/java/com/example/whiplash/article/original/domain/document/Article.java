@@ -16,11 +16,17 @@ import java.time.LocalDateTime;
 public class Article {
     @Id @GeneratedValue
     private String id;
+
     private String title;
+
     private String content;
+
     private LocalDateTime publishedAt;
+
     private String url;
+
     private String press;
+
     @Indexed
     private SummaryStatus summaryStatus;
     
