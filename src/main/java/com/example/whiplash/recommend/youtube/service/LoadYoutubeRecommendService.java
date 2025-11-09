@@ -38,22 +38,22 @@ public class LoadYoutubeRecommendService {
 	/**
 	 * 인증된 사용자의 키워드 기반 유튜브 영상 추천
 	 *
-	 * @param currentUserEmail 현재 인증된 사용자 이메일
+	 * @param currentUserId 현재 인증된 사용자 ID
 	 * @return 추천 영상 목록
 	 */
-	public YoutubeRecommendResponse getKeywordBasedRecommendations(Optional<String> currentUserEmail) {
+	public YoutubeRecommendResponse getKeywordBasedRecommendations(Optional<Long> currentUserId) {
 		// 1. 사용자 인증 확인
-		checkUserIsAuthenticated(currentUserEmail);
+		checkUserIsAuthenticated(currentUserId);
 
 		// 2. 사용자 조회
-		User user = userRepository.findByEmail(currentUserEmail.get())
+		User user = userRepository.findById(currentUserId.get())
 			.orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
 		// 3. 사용자 키워드 조회 (우선순위 순)
 		List<UserKeyword> userKeywords = userKeywordRepository.findAllByUserOrderByPriority(user);
 
 		if (userKeywords.isEmpty()) {
-			log.info("User {} has no keywords. Returning common recommendations only.", user.getEmail());
+			log.info("User {} has no keywords. Returning common recommendations only.", user.getId());
 			return getCommonRecommendationsOnly();
 		}
 
@@ -66,7 +66,7 @@ public class LoadYoutubeRecommendService {
 		}
 
 		int keywordBasedCount = allRecommendedVideos.size();
-		log.info("Found {} keyword-based recommendations for user {}", keywordBasedCount, user.getEmail());
+		log.info("Found {} keyword-based recommendations for user {}", keywordBasedCount, user.getId());
 
 		// 5. 최소 개수(10개) 미만이면 공통 추천 영상으로 채우기
 		int shortage = MINIMUM_RECOMMEND_COUNT - keywordBasedCount;
@@ -97,7 +97,7 @@ public class LoadYoutubeRecommendService {
 			.collect(Collectors.toList());
 
 		log.info("Returning {} total videos ({} keyword-based, {} common) for user {}",
-			videoDTOs.size(), keywordBasedCount, commonVideos.size(), user.getEmail());
+			videoDTOs.size(), keywordBasedCount, commonVideos.size(), user.getId());
 
 		return YoutubeRecommendResponse.of(videoDTOs, keywordBasedCount, commonVideos.size());
 	}
@@ -145,8 +145,8 @@ public class LoadYoutubeRecommendService {
 	/**
 	 * 사용자 인증 확인
 	 */
-	private static void checkUserIsAuthenticated(Optional<String> currentUserEmail) {
-		if (currentUserEmail.isEmpty()) {
+	private static void checkUserIsAuthenticated(Optional<Long> currentUserId) {
+		if (currentUserId.isEmpty()) {
 			throw new WhiplashException(ErrorStatus.UNAUTHORIZED);
 		}
 	}

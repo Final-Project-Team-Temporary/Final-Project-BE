@@ -4,8 +4,9 @@ package com.example.whiplash.user.service;
 import com.example.whiplash.apiPayload.ErrorStatus;
 import com.example.whiplash.apiPayload.exception.WhiplashException;
 import com.example.whiplash.converter.InvestorProfileConverter;
-import com.example.whiplash.keyword.user.Keyword;
-import com.example.whiplash.keyword.user.UserKeyword;
+import com.example.whiplash.domain.repository.InvestorProfileRepository;
+import com.example.whiplash.user.domain.keyword.Keyword;
+import com.example.whiplash.user.domain.keyword.UserKeyword;
 import com.example.whiplash.user.domain.profile.InvestorProfile;
 import com.example.whiplash.user.domain.Role;
 import com.example.whiplash.user.domain.User;
@@ -15,13 +16,16 @@ import com.example.whiplash.user.repository.keyword.UserKeywordRepository;
 import com.example.whiplash.user.web.dto.UserKeywordCreateRequest;
 import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
 import com.example.whiplash.user.repository.user.UserRepository;
+import com.example.whiplash.user.web.dto.response.InvestorProfileResDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
@@ -30,15 +34,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final KeywordRepository keywordRepository;
     private final UserKeywordRepository userKeywordRepository;
+    private final InvestorProfileRepository investorProfileRepository;
 
     @Transactional
-    public User registerProfile(ProfileRegisterDTO profileRegisterDTO, Optional<String> userEmail) {
-        checkUserIsAuthenticated(userEmail);
+    public User registerProfile(ProfileRegisterDTO profileRegisterDTO, Optional<Long> userId) {
+        checkUserIsAuthenticated(userId);
 
-        User user = userRepository.findByEmail(userEmail.get())
+        User user = userRepository.findById(userId.get())
                 .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
-        if(user.getUserStatus() != UserStatus.PENDING){
+        if (user.getUserStatus() != UserStatus.PENDING) {
             throw new WhiplashException(ErrorStatus.USER_ALREADY_ACTIVATED);
         }
 
@@ -52,9 +57,9 @@ public class UserService {
     }
 
     @Transactional
-    public void createUserKeyword(UserKeywordCreateRequest request, Optional<String> currentUserEmail) {
-        checkUserIsAuthenticated(currentUserEmail);
-        User user = userRepository.findByEmail(currentUserEmail.get())
+    public void createUserKeyword(UserKeywordCreateRequest request, Optional<Long> currentUserId) {
+        checkUserIsAuthenticated(currentUserId);
+        User user = userRepository.findById(currentUserId.get())
                 .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
         Optional<Keyword> optionalKeyword = keywordRepository.findByName(request.keyword());
@@ -66,8 +71,28 @@ public class UserService {
         }
     }
 
-    private static void checkUserIsAuthenticated(Optional<String> currentUserEmail) {
-        if (currentUserEmail.isEmpty()) {
+    public InvestorProfileResDto getUserProfile(Optional<Long> currentUserId) {
+        checkUserIsAuthenticated(currentUserId);
+        User user = userRepository.findById(currentUserId.get())
+                .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
+
+        log.info("user id :  {}", user.getId().toString());
+
+        InvestorProfile investorProfile = investorProfileRepository.findByUser(user)
+                .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
+
+        return InvestorProfileResDto.builder()
+                .id(investorProfile.getId())
+                .userId(user.getId())
+                .investmentLevel(investorProfile.getInvestmentLevel())
+                .riskTolerance(investorProfile.getRiskTolerance())
+                .investmentGoal(investorProfile.getInvestmentGoal())
+                .ageRange(investorProfile.getAgeRange())
+                .build();
+    }
+
+    private static void checkUserIsAuthenticated(Optional<Long> currentUserId) {
+        if (currentUserId.isEmpty()) {
             throw new WhiplashException(ErrorStatus.UNAUTHORIZED);
         }
     }
