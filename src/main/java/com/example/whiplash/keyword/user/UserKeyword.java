@@ -1,4 +1,4 @@
-package com.example.whiplash.user.domain.keyword;
+package com.example.whiplash.keyword.user;
 
 import com.example.whiplash.user.domain.User;
 import jakarta.persistence.*;
@@ -8,8 +8,8 @@ import lombok.*;
 @Table(name = "user_keywords")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder(access = AccessLevel.PRIVATE)
 public class UserKeyword {
     private static final int DEFAULT_PRIORITY = 0;
 

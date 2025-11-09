@@ -1,4 +1,4 @@
-package com.example.whiplash.user.domain.keyword;
+package com.example.whiplash.keyword.user;
 
 import jakarta.persistence.*;
 import lombok.*;

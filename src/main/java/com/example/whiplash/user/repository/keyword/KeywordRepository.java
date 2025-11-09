@@ -1,9 +1,8 @@
 package com.example.whiplash.user.repository.keyword;
 
-import com.example.whiplash.user.domain.keyword.Keyword;
+import com.example.whiplash.keyword.user.Keyword;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface KeywordRepository extends JpaRepository<Keyword, Long> {
