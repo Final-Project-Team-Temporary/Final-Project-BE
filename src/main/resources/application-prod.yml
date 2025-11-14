@@ -46,13 +46,6 @@ management:
     health:
       show-details: never
 
-logging:
-  level:
-    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
-    org.mongodb.driver.protocol.command: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: ${JWT_ACCESS_EXPIRATION}
