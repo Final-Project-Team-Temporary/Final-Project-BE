@@ -45,6 +45,19 @@ public class ArticleLoadController {
         return ResponseEntity.ok(ApiResponse.onSuccess(article));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<ArticleListResponse>> searchArticles(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "publishedAt"));
+        Page<ArticleListItemResponse> articles = articleQueryService.searchArticles(keyword, pageable);
+        ArticleListResponse response = ArticleListResponse.from(articles);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
     /**
      * 디버깅용: 전체 기사의 상태별 분포를 조회
      */
