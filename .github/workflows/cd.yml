@@ -89,7 +89,7 @@ jobs:
                 .image = $IMAGE
                 | .environment = $ENV_ARG
                 | .cpu = 682
-                | .memory = 614
+                | .memory = 1024
                 | .memoryReservation = 256
                 | .logConfiguration = {
                 logDriver: "awslogs",
