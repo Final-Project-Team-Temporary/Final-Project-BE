@@ -1,4 +1,4 @@
-package com.example.whiplash.recommend.youtube.service;
+package com.example.whiplash.recommend.youtube.streams.producer;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
