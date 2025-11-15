@@ -4,6 +4,7 @@ import com.example.whiplash.apiPayload.ErrorStatus;
 import com.example.whiplash.apiPayload.exception.WhiplashException;
 import com.example.whiplash.recommend.youtube.domain.YoutubeVideo;
 import com.example.whiplash.recommend.youtube.repository.YoutubeRecommendRedisRepository;
+import com.example.whiplash.recommend.youtube.streams.producer.YoutubeRecommendTaskProducer;
 import com.example.whiplash.recommend.youtube.web.dto.response.YoutubeRecommendResponse;
 import com.example.whiplash.recommend.youtube.web.dto.response.YoutubeVideoDTO;
 import com.example.whiplash.user.domain.User;

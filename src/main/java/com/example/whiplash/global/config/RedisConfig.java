@@ -11,8 +11,15 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @Configuration
 public class RedisConfig {
+    private final ObjectMapper objectMapper;
+
     @Bean
     public RedisConnectionFactory redisConnectionFactory(
         @Value("${spring.data.redis.host}") String host,
@@ -42,7 +49,7 @@ public class RedisConfig {
         // Key는 StringSerializer
         StringRedisSerializer stringSerializer = new StringRedisSerializer();
         // Value는 JSON
-        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer();
+        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
         template.setKeySerializer(stringSerializer);
         template.setValueSerializer(jsonSerializer);
