@@ -36,11 +36,10 @@ public class TermService {
      * 용어 사전에 새 용어 추가
      */
     @Transactional
-    public void addTermToDictionary(TermAddDto termAddDto, Optional<Long> userId) {
+    public void addTermToDictionary(TermAddDto termAddDto, Long userId) {
 
-        checkUserIsAuthenticated(userId);
 
-        User user = userRepository.findById(userId.get())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
         // Terms 저장 로직 (개선된 버전)
@@ -62,30 +61,23 @@ public class TermService {
         userTermsRepository.save(userTerms);
 
         // 비동기 퀴즈 생성 요청
-        quizPreGenerationService.generateQuizAsync(userId.get(), dicTerm.getTermName());
+        quizPreGenerationService.generateQuizAsync(userId, dicTerm.getTermName());
     }
 
     /**
      * 용어 목록 조회
      */
-    public List<DictionaryTermListResDto> getTerms(Optional<Long> userId) {
+    public List<DictionaryTermListResDto> getTerms(Long userId) {
 
-        checkUserIsAuthenticated(userId);
-
-        List<UserTerms> dicTermList = userTermsRepository.findByUserId(userId.get());
-
+        List<UserTerms> dicTermList = userTermsRepository.findByUserId(userId);
 
         return dicTermList.stream()
                 .map(dicTerm -> DictionaryTermListResDto.builder()
                         .userTermId(dicTerm.getId())
                         .termDescription(dicTerm.getTerms().getAiExplanation())
-                        .termName(dicTerm.getTerms().getTermName()).build()).toList();
-    }
-
-    private static void checkUserIsAuthenticated(Optional<Long> currentUserId) {
-        if (currentUserId.isEmpty()) {
-            throw new WhiplashException(ErrorStatus.UNAUTHORIZED);
-        }
+                        .termName(dicTerm.getTerms().getTermName())
+                        .createdAt(dicTerm.getTerms().getCreatedAt())
+                        .build()).toList();
     }
 
     // Terms 조회/생성 로직 분리 (가독성 향상)

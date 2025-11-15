@@ -66,6 +66,9 @@ dependencies {
 	// Quartz Scheduler (배치 작업용)
 	implementation 'org.springframework.boot:spring-boot-starter-quartz'
 
+	// Spring Validation 추가
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
 	// swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
