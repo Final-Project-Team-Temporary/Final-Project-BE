@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.whiplash.apiPayload.ApiResponse;
 import com.example.whiplash.global.util.SecurityContextUtils;
-import com.example.whiplash.recommend.article.service.LoadArticleRecommendService;
+import com.example.whiplash.recommend.article.application.service.LoadArticleRecommendService;
 import com.example.whiplash.recommend.article.web.dto.response.ArticleRecommendItemResponse;
 import com.example.whiplash.recommend.article.web.dto.response.ArticleRecommendResponse;
 

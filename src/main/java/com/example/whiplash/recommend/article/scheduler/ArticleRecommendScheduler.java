@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.example.whiplash.recommend.article.application.RecommendService;
+import com.example.whiplash.recommend.article.application.service.ArticleRecommendService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Component
 public class ArticleRecommendScheduler {
-	private final RecommendService recommendService;
+	private final ArticleRecommendService articleRecommendService;
 
 	/**
 	 * 매일 12시에 기사 추천 실행
@@ -34,7 +34,7 @@ public class ArticleRecommendScheduler {
 			// 최근 24시간 이내 발행된 기사를 기준으로 추천
 			LocalDateTime publishedAtAfter = now.minusDays(1);
 
-			recommendService.recommendArticle(now, publishedAtAfter);
+			articleRecommendService.recommendArticle(now, publishedAtAfter);
 
 			log.info("기사 추천 스케줄 완료 - {}", LocalDateTime.now());
 		} catch (Exception e) {
