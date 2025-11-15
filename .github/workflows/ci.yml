@@ -1,7 +1,7 @@
 name: ci.yml
 
 on:
-  workflows: ["ci.yml"]   # ci.yml의 name과 동일해야 함
+  workflow_dispatch:
   push:
     branches: [ develop ]
     paths-ignore:
