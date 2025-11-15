@@ -1,10 +1,7 @@
 package com.example.whiplash.term.entity;
 
 import com.example.whiplash.domain.entity.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -12,6 +9,9 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@Table(name = "terms",
+        indexes = @Index(name = "idx_term_name", columnList = "termName"),
+        uniqueConstraints = @UniqueConstraint(columnNames = "termName"))
 public class Terms extends BaseEntity {
 
     @Id
