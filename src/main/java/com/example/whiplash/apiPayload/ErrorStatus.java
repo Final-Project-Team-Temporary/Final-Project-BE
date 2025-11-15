@@ -38,6 +38,10 @@ public enum ErrorStatus {
     
     // 작업 관련
     JOB_NOT_FOUND("J401", "요청한 작업을 찾을 수 없습니다"),
+
+    // 용어 관련
+    TERM_SAVE_FAILED("J402", "용어 저장에 실패했습니다."),
+    TERM_ALREADY_IN_DICTIONARY("J403", "이미 용어사전에 저장된 용어입니다."),
     
     // 시스템 관련
     INTERNAL_SERVER_ERROR("E999", "서버 내부 오류가 발생했습니다");

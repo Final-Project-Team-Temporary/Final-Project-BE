@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PROTECTED;
@@ -47,6 +49,8 @@ public class User extends BaseEntity {
     @Enumerated(STRING)
     private SocialProvider socialProvider;
 
+    private LocalDateTime lastLoginAt;
+
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "investor_profile_id")
     private InvestorProfile investorProfile;
@@ -77,5 +81,13 @@ public class User extends BaseEntity {
     public void updateSummaryLevel(SummaryLevel summaryLevel) {
         this.summaryLevel = summaryLevel;
     }
+
+    /**
+     * 로그인 시간 업데이트
+     */
+    public void updateLastLogin() {
+        this.lastLoginAt = LocalDateTime.now();
+    }
+
 }
 

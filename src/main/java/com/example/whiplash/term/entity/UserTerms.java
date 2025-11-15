@@ -10,6 +10,11 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@Table(name = "user_terms",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_user_terms",
+                columnNames = {"user_id", "terms_id"}
+        ))
 public class UserTerms extends BaseEntity {
 
     @Id
