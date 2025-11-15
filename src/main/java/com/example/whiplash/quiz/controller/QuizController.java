@@ -1,4 +1,4 @@
-package com.example.whiplash.quiz;
+package com.example.whiplash.quiz.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
 import com.example.whiplash.config.security.UserPrincipal;

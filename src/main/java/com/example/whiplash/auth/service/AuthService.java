@@ -94,6 +94,8 @@ public class AuthService {
         // 모든 사용자 타입에 대해 user.getId()를 사용
         String userId = String.valueOf(user.getId());
 
+        user.updateLastLogin();
+
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userId, null, Collections.singletonList(() -> user.getRole().name()));
 
