@@ -109,7 +109,7 @@ async:
 quiz:
   batch:
     enabled: ${QUIZ_BATCH_ENABLED}                    # 배치 활성화 여부
-    cron: ${QUIZ_CRON}             # 매일 새벽 2시 (초 분 시 일 월 요일)
+    cron: "${QUIZ_CRON}"             # 매일 새벽 2시 (초 분 시 일 월 요일)
     max-users-per-batch: ${QUIZ_BATCH_MAX_USERS}         # 한 번에 처리할 최대 사용자 수
     max-terms-per-user: ${QUIZ_BATCH_MAX_TERMS}           # 사용자당 최대 퀴즈 생성 용어 수
     active-days-threshold: ${QUIZ_BATCH_ACTIVE_DAYS}        # 활성 사용자 기준 (최근 30일 내 접속)
