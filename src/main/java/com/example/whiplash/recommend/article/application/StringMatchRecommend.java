@@ -18,29 +18,28 @@ import com.example.whiplash.user.domain.User;
 import com.example.whiplash.user.repository.keyword.UserKeywordRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Primary
 @Component
 public class StringMatchRecommend implements RecommendStrategy{
-	private final ArticleKeywordRepository articleKeywordRepository;
-	private final UserKeywordRepository userKeywordRepository;
 
 	@Override
-	public double getScore(Article article, User user) {
-		Set<Keyword> articleKeywords = articleKeywordRepository.findByArticleId(article.getId())
-			.stream()
+	public double getScore(Set<ArticleKeyword> articleKeywords, Set<UserKeyword> userKeywords) {
+		List<Keyword> keywordsForArticle = articleKeywords.stream()
 			.map(ArticleKeyword::getKeyword)
-			.collect(Collectors.toSet());
-		Set<Keyword> userKeywords = userKeywordRepository.findAllByUserOrderByPriority(user)
-			.stream()
+			.toList();
+		List<Keyword> keywordsForUser = userKeywords.stream()
 			.map(UserKeyword::getKeyword)
-			.collect(Collectors.toSet());
+			.toList();
 
-		Set<Keyword> intersection = new HashSet<>(articleKeywords);
-		intersection.retainAll(userKeywords);
+		Set<Keyword> intersection = new HashSet<>(keywordsForArticle);
+		intersection.retainAll(keywordsForUser);
 
-		int score = intersection.size() / userKeywords.size();
+		double score = (double)intersection.size() / userKeywords.size();
+		log.info("[StringMatchRecommend] 사용자: {}, 기사: {}, score: {}", userKeywords.stream().findFirst().orElseThrow().getUser().getName(), articleKeywords.stream().findFirst().orElseThrow().getArticleId(), score);
 		return score;
 	}
 }

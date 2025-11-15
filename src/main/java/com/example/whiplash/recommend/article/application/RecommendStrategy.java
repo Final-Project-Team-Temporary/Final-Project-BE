@@ -1,8 +1,10 @@
 package com.example.whiplash.recommend.article.application;
 
-import com.example.whiplash.article.original.domain.document.Article;
-import com.example.whiplash.user.domain.User;
+import java.util.Set;
+
+import com.example.whiplash.keyword.article.domain.ArticleKeyword;
+import com.example.whiplash.keyword.user.UserKeyword;
 
 public interface RecommendStrategy {
-	double getScore(Article article, User user);
+	double getScore(Set<ArticleKeyword> articleKeywords, Set<UserKeyword> userKeywords);
 }

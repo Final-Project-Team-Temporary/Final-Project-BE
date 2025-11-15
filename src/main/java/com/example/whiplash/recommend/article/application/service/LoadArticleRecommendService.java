@@ -1,4 +1,4 @@
-package com.example.whiplash.recommend.article.service;
+package com.example.whiplash.recommend.article.application.service;
 
 import java.util.Collections;
 import java.util.List;
@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.whiplash.apiPayload.ErrorStatus;
 import com.example.whiplash.apiPayload.exception.WhiplashException;
 import com.example.whiplash.article.original.domain.document.Article;
+import com.example.whiplash.recommend.article.application.dto.ScoredArticle;
 import com.example.whiplash.recommend.article.domain.ArticleRecommendResult;
 import com.example.whiplash.recommend.article.repository.ArticleRecommendRedisRepository;
 import com.example.whiplash.recommend.article.web.dto.response.ArticleRecommendItemResponse;
@@ -57,7 +58,10 @@ public class LoadArticleRecommendService {
 			return new PageImpl<>(Collections.emptyList(), pageable, 0);
 		}
 
-		List<Article> articles = recommendResult.getArticles();
+		List<Article> articles = recommendResult.getScoredArticles()
+			.stream()
+			.map(ScoredArticle::article)
+			.toList();
 
 		// 4. 페이징 처리
 		int start = (int)pageable.getOffset();
