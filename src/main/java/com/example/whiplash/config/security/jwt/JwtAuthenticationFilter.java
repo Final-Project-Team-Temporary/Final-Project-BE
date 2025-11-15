@@ -1,5 +1,6 @@
 package com.example.whiplash.config.security.jwt;
 
+import com.example.whiplash.config.security.UserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,10 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = jwtTokenProvider.resolveToken(request);
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            String userIdFromToken = jwtTokenProvider.getUserIdFromToken(token);
+            Long userIdFromToken = Long.parseLong(jwtTokenProvider.getUserIdFromToken(token));
             String authoritiesFromToken = jwtTokenProvider.getAuthoritiesFromToken(token);
 
-            User principal = new User(userIdFromToken, "", Collections.singletonList(new SimpleGrantedAuthority(authoritiesFromToken)));
+//            User principal = new User(userIdFromToken, "", Collections.singletonList(new SimpleGrantedAuthority(authoritiesFromToken)));
+
+            UserPrincipal principal = new UserPrincipal(userIdFromToken);
 
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
