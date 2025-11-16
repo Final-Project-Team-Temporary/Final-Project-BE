@@ -103,6 +103,9 @@ public class SecurityConfig {
 		CorsConfiguration config = new CorsConfiguration();
 		config.addAllowedOrigin("http://localhost:3000");
 		config.addAllowedOrigin("https://v0-financial-learning-platform.vercel.app");
+		config.addAllowedOrigin("https://api.econoeasy.xyz");
+		config.addAllowedOrigin("https://www.econoeasy.xyz");
+		config.addAllowedOrigin("https://econoeasy.xyz");
 		config.addAllowedHeader("*");
 		config.addAllowedMethod("*");
 		config.setAllowCredentials(true);
