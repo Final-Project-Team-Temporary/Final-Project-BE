@@ -14,10 +14,11 @@ import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.example.whiplash.user.web.dto.request.LoginRequestDTO;
 
 @Configuration
 public class SwaggerConfig {
@@ -29,11 +30,24 @@ public class SwaggerConfig {
         OpenAPI openAPI = new OpenAPI()
             .info(apiInfo())
             .addSecurityItem(securityRequirement())
-            .components(components());
+            .components(components())
+            .servers(getServerList());
+            ;
 
         addLoginEndpoint(openAPI);
 
         return openAPI;
+    }
+
+    private static List<Server> getServerList() {
+        return List.of(
+            new Server()
+                .url("https://api.econoeasy.xyz")
+                .description("Production (https)"),
+            new Server()
+                .url("http://localhost:8080")
+                .description("Local development")
+        );
     }
 
     private static void addLoginEndpoint(OpenAPI openAPI) {
