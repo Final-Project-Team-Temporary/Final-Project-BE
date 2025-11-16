@@ -1,5 +1,6 @@
 package com.example.whiplash.recommend.youtube.web.dto.response;
 
+import java.util.Collections;
 import java.util.List;
 
 public record YoutubeRecommendResponse(
@@ -19,5 +20,9 @@ public record YoutubeRecommendResponse(
                 commonRecommendCount,
                 videos
         );
+    }
+
+    public static YoutubeRecommendResponse empty() {
+        return YoutubeRecommendResponse.of(Collections.emptyList(), 0, 0);
     }
 }

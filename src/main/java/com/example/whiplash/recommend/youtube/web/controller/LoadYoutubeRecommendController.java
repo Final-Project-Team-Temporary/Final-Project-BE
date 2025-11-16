@@ -34,7 +34,7 @@ public class LoadYoutubeRecommendController {
     public ApiResponse<YoutubeRecommendResponse> getRecommendations() {
         log.info("유튜브 영상 추천 요청 수신");
 
-        YoutubeRecommendResponse response = loadYoutubeRecommendService.getKeywordBasedRecommendations(
+        YoutubeRecommendResponse response = loadYoutubeRecommendService.getRecommendations(
                 SecurityContextUtils.getCurrentUserId()
         );
 
