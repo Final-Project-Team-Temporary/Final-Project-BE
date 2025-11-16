@@ -1,6 +1,9 @@
 package com.example.whiplash.recommend.youtube.repository;
 
 import com.example.whiplash.recommend.youtube.domain.YoutubeVideo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 유튜브 추천 영상을 Redis에서 조회/저장하는 Repository
@@ -26,6 +30,7 @@ public class YoutubeRecommendRedisRepository {
     private String COMMON_RECOMMEND_KEY;
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
     /**
      * 키워드 ID 기반으로 추천 영상 목록 조회
@@ -61,19 +66,36 @@ public class YoutubeRecommendRedisRepository {
      * @param key Redis key
      * @return 영상 목록
      */
-    private List<YoutubeVideo> getVideosFromRedis(String key) {
+    private List<YoutubeVideo> getVideosFromRedis(String key) { //TODO 이거 더 깔끔하게 가능한지
         try {
-            Set<Object> members = redisTemplate.opsForSet().members(key);
+            Set<String> members = redisTemplate.opsForSet().members(key)
+                .stream()
+                .map(member-> {
+					try {
+						return objectMapper.writeValueAsString(member);
+					} catch (JsonProcessingException e) {
+						throw new RuntimeException(e);
+					}
+				})
+                .collect(Collectors.toSet());
 
             if (members == null || members.isEmpty()) {
-                log.debug("No videos found for key: {}", key);
+                log.info("No videos found for key: {}", key);
                 return new ArrayList<>();
             }
 
-            return members.stream()
-                    .filter(obj -> obj instanceof YoutubeVideo)
-                    .map(obj -> (YoutubeVideo) obj)
-                    .toList();
+            List<YoutubeVideo> videos = members.stream()
+                // .filter(obj -> obj instanceof YoutubeVideo)
+                .map(obj -> {
+					try {
+						return objectMapper.readValue(obj, YoutubeVideo.class);
+					} catch (JsonProcessingException e) {
+						throw new RuntimeException(e);
+					}
+				})
+                .toList();
+
+            return videos;
         } catch (Exception e) {
             log.error("Error while fetching videos from Redis for key: {}", key, e);
             return new ArrayList<>();
