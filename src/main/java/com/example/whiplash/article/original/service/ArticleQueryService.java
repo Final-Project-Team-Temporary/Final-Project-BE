@@ -71,4 +71,9 @@ public class ArticleQueryService {
         return allArticles.stream()
                 .collect(Collectors.groupingBy(Article::getSummaryStatus, Collectors.counting()));
     }
+
+    public Page<ArticleListItemResponse> searchArticles(String keyword, Pageable pageable) {
+        Page<Article> articles = articleRepository.searchByKeyword(keyword, pageable);
+        return articles.map(ArticleConverter::toArticleListItemResponse);
+    }
 }
