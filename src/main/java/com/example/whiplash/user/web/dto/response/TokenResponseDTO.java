@@ -14,4 +14,5 @@ public class TokenResponseDTO {
     private String refreshToken;
     private UserStatus userStatus;
     private LoginStatus loginStatus;
+    private String userName;
 }
