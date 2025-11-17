@@ -57,7 +57,7 @@ public class AuthService {
 
         String tempToken = jwtTokenProvider.generateTempToken(newUser);
 
-        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING, LoginStatus.NEW_USER);
+        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING, LoginStatus.NEW_USER, newUser.getName());
     }
 
     @Transactional
@@ -81,7 +81,7 @@ public class AuthService {
 
         // 회원가입의 경우 임시토큰 생성
         String tempToken = jwtTokenProvider.generateTempSocialToken(kakaoUser);
-        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING, LoginStatus.NEW_USER);
+        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING, LoginStatus.NEW_USER, kakaoUser.getName());
     }
 
     @Transactional
@@ -104,7 +104,7 @@ public class AuthService {
 
         refreshTokenService.saveRefreshToken(refreshToken);
 
-        return AuthConverter.toTokenResponseDTO(accessToken, refreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER);
+        return AuthConverter.toTokenResponseDTO(accessToken, refreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER, user.getName());
     }
 
     @Transactional
@@ -134,7 +134,7 @@ public class AuthService {
 
         refreshTokenService.saveRefreshToken(refreshToken);
 
-        return AuthConverter.toTokenResponseDTO(accessToken, refreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER);
+        return AuthConverter.toTokenResponseDTO(accessToken, refreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER, user.getName());
     }
 
     @Transactional
@@ -167,7 +167,7 @@ public class AuthService {
 
         refreshTokenService.saveRefreshToken(newRefreshToken);
 
-        return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER);
+        return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER, user.getName());
     }
 
     @Transactional
@@ -193,7 +193,7 @@ public class AuthService {
 
         refreshTokenService.saveRefreshToken(newRefreshToken);
 
-        return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER);
+        return AuthConverter.toTokenResponseDTO(newAccessToken, newRefreshToken, UserStatus.ACTIVE, LoginStatus.EXISTING_USER, tempUser.getName());
 
     }
 

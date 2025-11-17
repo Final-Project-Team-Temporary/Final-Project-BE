@@ -2,9 +2,11 @@ package com.example.whiplash.term.service;
 
 import com.example.whiplash.apiPayload.ErrorStatus;
 import com.example.whiplash.apiPayload.exception.WhiplashException;
+import com.example.whiplash.quiz.client.AiServerClient;
 import com.example.whiplash.quiz.service.QuizPreGenerationService;
 import com.example.whiplash.term.dto.request.TermAddDto;
 import com.example.whiplash.term.dto.response.DictionaryTermListResDto;
+import com.example.whiplash.term.dto.response.TermExplainResDto;
 import com.example.whiplash.term.entity.Terms;
 import com.example.whiplash.term.entity.UserTerms;
 import com.example.whiplash.term.repository.TermsRepository;
@@ -31,6 +33,7 @@ public class TermService {
     private final UserTermsRepository userTermsRepository;
     private final UserRepository userRepository;
     private final QuizPreGenerationService quizPreGenerationService;
+    private final AiServerClient aiServerClient;
 
     /**
      * 용어 사전에 새 용어 추가
@@ -79,6 +82,23 @@ public class TermService {
                         .createdAt(dicTerm.getTerms().getCreatedAt())
                         .build()).toList();
     }
+
+    /**
+     * 용어 AI 설명요청
+     */
+    public TermExplainResDto getTermExplanation(String term) {
+        Optional<Terms> findTerm = termsRepository.findByTermName(term);
+
+        if(findTerm.isPresent()) {
+            Terms terms = findTerm.get();
+            return new TermExplainResDto(terms.getTermName(), terms.getAiExplanation());
+        }
+
+        return aiServerClient.getTermExplain(term);
+    }
+
+
+
 
     // Terms 조회/생성 로직 분리 (가독성 향상)
     private Terms getOrCreateTerm(TermAddDto termAddDto) {

@@ -2,6 +2,8 @@ package com.example.whiplash.quiz.client;
 
 import com.example.whiplash.quiz.dto.request.QuizCreateReqDto;
 import com.example.whiplash.quiz.dto.response.QuizResDto;
+import com.example.whiplash.term.dto.request.TermExplainReqDto;
+import com.example.whiplash.term.dto.response.TermExplainResDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
@@ -59,6 +61,39 @@ public class AiServerClient {
         } catch (Exception e) {
             log.error("AI 서버 통신 실패: keyword={}", keyword, e);
             throw new RuntimeException("퀴즈 생성 실패: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * AI 서버에 용어 설명 요청
+     */
+    public TermExplainResDto getTermExplain(String term) {
+        log.info("AI 서버 용어 설명 요청 : {}", term);
+
+        TermExplainReqDto request = new TermExplainReqDto(term);
+
+        try {
+            TermExplainResDto response = webClient.post()
+                    .uri("/keyword/define")  // AI 서버 엔드포인트
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, clientResponse -> {
+                        log.error("AI 서버 에러: status={}", clientResponse.statusCode());
+                        return Mono.error(new RuntimeException("AI 서버 응답 실패"));
+                    })
+                    .bodyToMono(TermExplainResDto.class)
+                    .timeout(Duration.ofSeconds(30))
+                    .block();  // 동기 방식으로 대기
+
+            if (response != null) {
+                log.info("AI 용어 설명 완료 : {}", response.getDefinition());
+            }
+
+            return response;
+
+        } catch (Exception e) {
+            log.error("AI 서버 통신 실패: keyword={}", term, e);
+            throw new RuntimeException("용어 설명 실패: " + e.getMessage(), e);
         }
     }
 }

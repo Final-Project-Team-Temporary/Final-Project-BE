@@ -6,12 +6,13 @@ import com.example.whiplash.user.web.dto.response.TokenResponseDTO;
 
 public class AuthConverter {
 
-    public static TokenResponseDTO toTokenResponseDTO(String accessToken, String refreshToken, UserStatus userStatus, LoginStatus loginStatus) {
+    public static TokenResponseDTO toTokenResponseDTO(String accessToken, String refreshToken, UserStatus userStatus, LoginStatus loginStatus, String userName) {
         return TokenResponseDTO.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .userStatus(userStatus)
                 .loginStatus(loginStatus)
+                .userName(userName)
                 .build();
     }
 }
