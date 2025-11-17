@@ -1,6 +1,7 @@
 package com.example.whiplash.term.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
+import com.example.whiplash.config.security.UserPrincipal;
 import com.example.whiplash.global.util.SecurityContextUtils;
 import com.example.whiplash.term.dto.request.TermAddDto;
 import com.example.whiplash.term.dto.response.DictionaryTermListResDto;
@@ -32,19 +33,22 @@ public class TermsController {
 
     @PostMapping("")
     @Operation(summary = "용어 저장", description = "용어를 나의 용어사전에 저장합니다.")
-    public ApiResponse<?> addTerms(@RequestBody TermAddDto termAddDto) {
+    public ApiResponse<?> addTerms(@RequestBody TermAddDto termAddDto, @AuthenticationPrincipal UserPrincipal principal) {
 
-        Optional<Long> currentUserId = SecurityContextUtils.getCurrentUserId();
+        Long userId = principal.getUserId();
 
-        termService.addTermToDictionary(termAddDto, currentUserId);
+        termService.addTermToDictionary(termAddDto, userId);
+
         return ApiResponse.onSuccess(null);
     }
 
     @GetMapping("")
     @Operation(summary = "용어 리스트 조회", description = "나의 용어사전에 저장된 용어 목록을 조회합니다.")
-    public ApiResponse<?> getTerms(){
+    public ApiResponse<?> getTerms(@AuthenticationPrincipal UserPrincipal principal) {
 
-        List<DictionaryTermListResDto> dicTermListResDto = termService.getTerms(SecurityContextUtils.getCurrentUserId());
+        Long userId = principal.getUserId();
+
+        List<DictionaryTermListResDto> dicTermListResDto = termService.getTerms(userId);
 
         return ApiResponse.onSuccess(dicTermListResDto);
     }

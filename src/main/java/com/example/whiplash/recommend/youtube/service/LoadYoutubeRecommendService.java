@@ -4,6 +4,7 @@ import com.example.whiplash.apiPayload.ErrorStatus;
 import com.example.whiplash.apiPayload.exception.WhiplashException;
 import com.example.whiplash.recommend.youtube.domain.YoutubeVideo;
 import com.example.whiplash.recommend.youtube.repository.YoutubeRecommendRedisRepository;
+import com.example.whiplash.recommend.youtube.streams.producer.YoutubeRecommendTaskProducer;
 import com.example.whiplash.recommend.youtube.web.dto.response.YoutubeRecommendResponse;
 import com.example.whiplash.recommend.youtube.web.dto.response.YoutubeVideoDTO;
 import com.example.whiplash.user.domain.User;
@@ -41,37 +42,55 @@ public class LoadYoutubeRecommendService {
 	 * @param currentUserId 현재 인증된 사용자 ID
 	 * @return 추천 영상 목록
 	 */
-	public YoutubeRecommendResponse getKeywordBasedRecommendations(Optional<Long> currentUserId) {
-		// 1. 사용자 인증 확인
-		checkUserIsAuthenticated(currentUserId);
+	public YoutubeRecommendResponse getRecommendations(Optional<Long> currentUserId) {
+		if(currentUserId.isEmpty()) {
+			return getCommonRecommendationsOnly();
+		}
 
-		// 2. 사용자 조회
 		User user = userRepository.findById(currentUserId.get())
 			.orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
-		// 3. 사용자 키워드 조회 (우선순위 순)
 		List<UserKeyword> userKeywords = userKeywordRepository.findAllByUserOrderByPriority(user);
 
 		if (userKeywords.isEmpty()) {
 			log.info("User {} has no keywords. Returning common recommendations only.", user.getId());
 			return getCommonRecommendationsOnly();
+		} else {
+			Set<YoutubeVideo> allRecommendedVideos = getKeywordBasedRecommendationsAndProduceKeywordRecommendTaskIfNeeded(userKeywords);
+			int keywordBasedCount = allRecommendedVideos.size();
+			log.info("Found {} keyword-based recommendations for user {}", keywordBasedCount, user.getId());
+
+			if (keywordBasedCount == 0) {
+				return YoutubeRecommendResponse.empty();
+			}
+
+			List<YoutubeVideo> commonVideos = getCommonRecommendations(keywordBasedCount);
+
+			List<YoutubeVideo> allVideos = sumCommonVideosAndRecommendedVideos(allRecommendedVideos, commonVideos);
+
+			List<YoutubeVideoDTO> videoDTOs = allVideos.stream()
+				.map(YoutubeVideoDTO::from)
+				.collect(Collectors.toList());
+
+			log.info("Returning {} total videos ({} keyword-based, {} common) for user {}",
+				videoDTOs.size(), keywordBasedCount, commonVideos.size(), user.getId());
+
+			return YoutubeRecommendResponse.of(videoDTOs, keywordBasedCount, commonVideos.size());
 		}
+	}
 
-		// 4. 키워드 기반 추천 영상 조회
-		Set<YoutubeVideo> allRecommendedVideos = new HashSet<>();
+	private static List<YoutubeVideo> sumCommonVideosAndRecommendedVideos(Set<YoutubeVideo> allRecommendedVideos,
+		List<YoutubeVideo> commonVideos) {
+		List<YoutubeVideo> allVideos = new ArrayList<>();
 
-		for (UserKeyword userKeyword : userKeywords) {
-			List<YoutubeVideo> videosForKeyword = getRecommendedVideosBasedOn(userKeyword);
-			allRecommendedVideos.addAll(videosForKeyword);
-		}
+		allVideos.addAll(allRecommendedVideos);
+		allVideos.addAll(commonVideos);
+		return allVideos;
+	}
 
-		int keywordBasedCount = allRecommendedVideos.size();
-		log.info("Found {} keyword-based recommendations for user {}", keywordBasedCount, user.getId());
-
-		// 5. 최소 개수(10개) 미만이면 공통 추천 영상으로 채우기
-		int shortage = MINIMUM_RECOMMEND_COUNT - keywordBasedCount;
+	private List<YoutubeVideo> getCommonRecommendations(int keywordBasedCount) {
 		List<YoutubeVideo> commonVideos = new ArrayList<>();
-
+		int shortage = MINIMUM_RECOMMEND_COUNT - keywordBasedCount;
 		if (shortage > 0) {
 			log.info("Shortage of {} videos. Fetching common recommendations.", shortage);
 			Set<YoutubeVideo> allCommonVideos = youtubeRecommendRedisRepository.findCommonRecommendations(shortage);
@@ -87,19 +106,27 @@ public class LoadYoutubeRecommendService {
 			}
 		}
 
-		// 6. 결과 합치기
-		List<YoutubeVideo> allVideos = new ArrayList<>(allRecommendedVideos);
-		allVideos.addAll(commonVideos);
+		return commonVideos;
+	}
 
-		// 7. DTO 변환
-		List<YoutubeVideoDTO> videoDTOs = allVideos.stream()
-			.map(YoutubeVideoDTO::from)
-			.collect(Collectors.toList());
+	private Set<YoutubeVideo> getKeywordBasedRecommendationsAndProduceKeywordRecommendTaskIfNeeded(List<UserKeyword> userKeywords) {
+		Set<YoutubeVideo> allRecommendedVideos = new HashSet<>();
 
-		log.info("Returning {} total videos ({} keyword-based, {} common) for user {}",
-			videoDTOs.size(), keywordBasedCount, commonVideos.size(), user.getId());
+		for (UserKeyword userKeyword : userKeywords) {
+			List<YoutubeVideo> videosForKeyword = getRecommendedVideosBasedOn(userKeyword);
+			addVideosOrProduceKeywordRecommendTask(userKeyword, videosForKeyword, allRecommendedVideos);
+		}
+		return allRecommendedVideos;
+	}
 
-		return YoutubeRecommendResponse.of(videoDTOs, keywordBasedCount, commonVideos.size());
+	private void addVideosOrProduceKeywordRecommendTask(UserKeyword userKeyword, List<YoutubeVideo> videosForKeyword,
+		Set<YoutubeVideo> allRecommendedVideos) {
+		if (videosForKeyword.isEmpty()) {
+			// 비동기로 Redis Streams에 키워드 ID 및 이름 발행
+			String keywordName = userKeyword.getKeyword().getName();
+			youtubeRecommendTaskProducer.produceKeywordRecommendTask(userKeyword.getKeyword().getId(), keywordName);
+		}
+		allRecommendedVideos.addAll(videosForKeyword);
 	}
 
 	private List<YoutubeVideo> getRecommendedVideosBasedOn(UserKeyword userKeyword) {
@@ -111,17 +138,11 @@ public class LoadYoutubeRecommendService {
 		// Redis에서 해당 키워드의 추천 영상 조회
 		List<YoutubeVideo> videosForKeyword = youtubeRecommendRedisRepository.findByKeywordId(keywordId);
 
-		if (videosForKeyword.isEmpty()) {
-			// 비동기로 Redis Streams에 키워드 ID 및 이름 발행
-			String keywordName = userKeyword.getKeyword().getName();
-			youtubeRecommendTaskProducer.produceKeywordRecommendTask(keywordId, keywordName);
-		} else {
-			// 중복 제거하면서 추가
-			for (YoutubeVideo video : videosForKeyword) {
-				if (!uniqueVideoIds.contains(video.getVideoId())) {
-					keywordBasedVideos.add(video);
-					uniqueVideoIds.add(video.getVideoId());
-				}
+		// 중복 제거하면서 추가
+		for (YoutubeVideo video : videosForKeyword) {
+			if (!uniqueVideoIds.contains(video.getVideoId())) {
+				keywordBasedVideos.add(video);
+				uniqueVideoIds.add(video.getVideoId());
 			}
 		}
 
@@ -142,12 +163,4 @@ public class LoadYoutubeRecommendService {
 		return YoutubeRecommendResponse.of(videoDTOs, 0, commonVideos.size());
 	}
 
-	/**
-	 * 사용자 인증 확인
-	 */
-	private static void checkUserIsAuthenticated(Optional<Long> currentUserId) {
-		if (currentUserId.isEmpty()) {
-			throw new WhiplashException(ErrorStatus.UNAUTHORIZED);
-		}
-	}
 }
