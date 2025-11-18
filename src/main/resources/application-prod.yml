@@ -71,11 +71,11 @@ redis:
   key:
     stream-key: ${REDIS_STREAM_KEY}
     dedup-key: ${REDIS_DEDUP_KEY}
-    recommend:
+    recommend:        # YouTube recommend
       keyword-recommend: ${REDIS_KEYWORD_RECOMMEND_CACHE_PREFIX}
       common-recommend: ${REDIS_COMMON_RECOMMEND_CACHE_KEY}
       stream-key: ${REDIS_RECOMMEND_STREAM_KEY}
-    recommend-result:
+    recommend-result: # YouTube recommend
       stream-key: ${REDIS_RECOMMEND_RESULT_STREAM_KEY}
       consumer-group: ${REDIS_RECOMMEND_RESULT_CONSUMER_GROUP}
       consumer-name: ${REDIS_RECOMMEND_RESULT_CONSUMER_NAME}
