@@ -97,7 +97,7 @@ public class ArticleRecommendService {
 			.thenComparing(scoredArticle -> scoredArticle.article().getPublishedAt(), Comparator.reverseOrder())
 		);
 
-		return scoredArticles.size() > 10 ? scoredArticles.subList(0, 10) : scoredArticles;
+		return scoredArticles.size() > 10 ? new ArrayList<>(scoredArticles.subList(0, 10)) : scoredArticles;
 	}
 
 	private void calculateScoreAndAdd(List<UserKeyword> userKeywords,
