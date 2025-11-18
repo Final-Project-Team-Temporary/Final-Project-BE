@@ -1,6 +1,7 @@
 package com.example.whiplash.user.web.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
+import com.example.whiplash.config.security.UserPrincipal;
 import com.example.whiplash.global.util.SecurityContextUtils;
 import com.example.whiplash.user.domain.User;
 import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
@@ -33,8 +34,10 @@ public class UserController {
     }
 
     @GetMapping("/profile")
-    public ApiResponse<?> getProfile() {
-        Optional<Long> optionalUserId = SecurityContextUtils.getCurrentUserId();
-        return ApiResponse.onSuccess(userService.getUserProfile(optionalUserId));
+    public ApiResponse<?> getProfile(@AuthenticationPrincipal UserPrincipal principal) {
+
+        Long userId = principal.getUserId();
+
+        return ApiResponse.onSuccess(userService.getUserProfile(userId));
     }
 }

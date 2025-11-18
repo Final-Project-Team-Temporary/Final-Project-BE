@@ -1,6 +1,7 @@
 package com.example.whiplash.quiz.dto.response;
 
 import com.example.whiplash.quiz.dto.QuizDto;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class QuizResDto implements Serializable {
 
     private List<QuizDto> quizzes;

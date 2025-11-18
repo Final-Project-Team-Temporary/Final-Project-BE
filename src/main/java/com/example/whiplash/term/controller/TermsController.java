@@ -20,7 +20,7 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users/terms")
-@Tag(name = "용어 관련 API",description = "용어 저장/조회/삭제 API")
+@Tag(name = "용어 관련 API", description = "용어 저장/조회/삭제 API")
 public class TermsController {
 
     private final TermService termService;
@@ -55,9 +55,13 @@ public class TermsController {
 
     @GetMapping("/{termsId}")
     @Operation(summary = "용어 상세조회", description = "용어에 대한 상세설명을 조회합니다.")
-    public ApiResponse<?> getTermsById(@PathVariable("termsId") String termsId){
+    public ApiResponse<?> getTermsById(@PathVariable("termsId") String termsId) {
         return null;
     }
 
-
+    @GetMapping("/explain")
+    @Operation(summary = "용어 AI설명 요청", description = "용어에 대한 AI 설명을 요청합니다.")
+    public ApiResponse<?> getTermsExplain(@RequestParam String term) {
+        return ApiResponse.onSuccess(termService.getTermExplanation(term));
+    }
 }

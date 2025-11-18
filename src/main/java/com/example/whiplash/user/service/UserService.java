@@ -71,19 +71,17 @@ public class UserService {
         }
     }
 
-    public InvestorProfileResDto getUserProfile(Optional<Long> currentUserId) {
-        checkUserIsAuthenticated(currentUserId);
-        User user = userRepository.findById(currentUserId.get())
-                .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
+    public InvestorProfileResDto getUserProfile(Long userId) {
 
-        log.info("user id :  {}", user.getId().toString());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
         InvestorProfile investorProfile = investorProfileRepository.findByUser(user)
                 .orElseThrow(() -> new WhiplashException(ErrorStatus.USER_NOT_FOUND));
 
         return InvestorProfileResDto.builder()
                 .id(investorProfile.getId())
-                .userId(user.getId())
+                .userId(userId)
                 .investmentLevel(investorProfile.getInvestmentLevel())
                 .riskTolerance(investorProfile.getRiskTolerance())
                 .investmentGoal(investorProfile.getInvestmentGoal())

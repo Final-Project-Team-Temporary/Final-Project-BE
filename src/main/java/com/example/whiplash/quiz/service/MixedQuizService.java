@@ -83,16 +83,43 @@ public class MixedQuizService {
         String cacheKey = CACHE_KEY_PREFIX + userId + ":" + term;
 
         // 1. 캐시 확인
-        QuizResDto cached = (QuizResDto) redisTemplate.opsForValue().get(cacheKey);
+        Object cachedData = redisTemplate.opsForValue().get(cacheKey);
 
-        if (cached != null) {
+        if (cachedData != null) {
             log.debug("캐시 히트: userId={}, term={}", userId, term);
-            return cached.getQuizzes();
+
+            try {
+                // Redis에서 QuizResDto로 역직렬화 (타입 정보 포함)
+                if (cachedData instanceof QuizResDto) {
+                    QuizResDto cached = (QuizResDto) cachedData;
+                    log.info("캐싱 데이터: term={}, count={}", term, cached.getQuizzes().size());
+                    return cached.getQuizzes();
+                } else {
+                    log.warn("예상치 못한 캐시 타입: {}", cachedData.getClass().getName());
+                    // 잘못된 타입이면 캐시 삭제 후 재생성
+                    redisTemplate.delete(cacheKey);
+                    return generateAndCacheQuiz(userId, term, cacheKey);
+                }
+            } catch (Exception e) {
+                // 역직렬화 실패 시 캐시 삭제 후 재생성
+                log.warn("캐시 역직렬화 실패 - 캐시 삭제 후 재생성: userId={}, term={}, error={}",
+                         userId, term, e.getMessage());
+                redisTemplate.delete(cacheKey);
+
+                // 재생성 후 반환
+                return generateAndCacheQuiz(userId, term, cacheKey);
+            }
         }
 
         // 2. 캐시 미스 - AI 서버 실시간 생성
         log.warn("캐시 미스 - 실시간 생성: userId={}, term={}", userId, term);
+        return generateAndCacheQuiz(userId, term, cacheKey);
+    }
 
+    /**
+     * 퀴즈 생성 및 캐싱 (공통 로직 분리)
+     */
+    private List<QuizDto> generateAndCacheQuiz(Long userId, String term, String cacheKey) {
         try {
             QuizResDto freshQuiz = aiServerClient.generateQuiz(term, 3);
 
@@ -103,11 +130,14 @@ public class MixedQuizService {
                     java.time.Duration.ofDays(7)
             );
 
+            log.info("퀴즈 생성 및 캐싱 완료: userId={}, term={}, count={}",
+                     userId, term, freshQuiz.getQuizzes().size());
+
             return freshQuiz.getQuizzes();
 
         } catch (Exception e) {
             log.error("퀴즈 생성 실패: userId={}, term={}", userId, term, e);
-            throw new RuntimeException("퀴즈를 생성할 수 없습니다: " + term);
+            throw new RuntimeException("퀴즈를 생성할 수 없습니다: " + term, e);
         }
     }
 
@@ -131,5 +161,34 @@ public class MixedQuizService {
      */
     private int calculateEstimatedTime(int totalQuestions) {
         return (int) Math.ceil(totalQuestions * 0.5);  // 0.5분 = 30초
+    }
+
+    /**
+     * 특정 사용자의 모든 퀴즈 캐시 삭제
+     */
+    public void clearUserQuizCache(Long userId) {
+        String pattern = CACHE_KEY_PREFIX + userId + ":*";
+
+        // 패턴에 맞는 키 찾기
+        var keys = redisTemplate.keys(pattern);
+
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+            log.info("퀴즈 캐시 삭제 완료: userId={}, count={}", userId, keys.size());
+        } else {
+            log.info("삭제할 캐시가 없음: userId={}", userId);
+        }
+    }
+
+    /**
+     * 특정 용어의 퀴즈 캐시 삭제
+     */
+    public void clearTermQuizCache(Long userId, String term) {
+        String cacheKey = CACHE_KEY_PREFIX + userId + ":" + term;
+
+        Boolean deleted = redisTemplate.delete(cacheKey);
+
+        log.info("용어 퀴즈 캐시 삭제: userId={}, term={}, deleted={}",
+                 userId, term, deleted);
     }
 }

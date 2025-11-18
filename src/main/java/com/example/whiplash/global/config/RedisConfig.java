@@ -1,5 +1,6 @@
 package com.example.whiplash.global.config;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Configuration
 public class RedisConfig {
-    private final ObjectMapper objectMapper;
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory(
@@ -42,14 +42,17 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
+    public RedisTemplate<String, Object> redisTemplate(
+            RedisConnectionFactory factory,
+            @Qualifier("redisObjectMapper") ObjectMapper redisObjectMapper) {
+
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
 
         // Key는 StringSerializer
         StringRedisSerializer stringSerializer = new StringRedisSerializer();
-        // Value는 JSON
-        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+        // Value는 JSON (Redis 전용 ObjectMapper 사용)
+        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(redisObjectMapper);
 
         template.setKeySerializer(stringSerializer);
         template.setValueSerializer(jsonSerializer);
