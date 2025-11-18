@@ -147,4 +147,29 @@ public class QuizController {
 
         return ApiResponse.onSuccess(result);
     }
+
+    /**
+     * ⭐ 퀴즈 캐시 초기화 (디버깅용)
+     */
+    @DeleteMapping("/cache")
+    @Operation(summary = "퀴즈 캐시 초기화", description = "사용자의 모든 퀴즈 캐시를 삭제합니다 (역직렬화 오류 해결용)")
+    public ApiResponse<String> clearQuizCache(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam(required = false) String term
+    ) {
+
+        Long userId = principal.getUserId();
+
+        if (term != null && !term.isBlank()) {
+            // 특정 용어의 캐시만 삭제
+            mixedQuizService.clearTermQuizCache(userId, term);
+            log.info("용어 퀴즈 캐시 삭제: userId={}, term={}", userId, term);
+            return ApiResponse.onSuccess("용어 '" + term + "'의 캐시가 삭제되었습니다.");
+        } else {
+            // 모든 퀴즈 캐시 삭제
+            mixedQuizService.clearUserQuizCache(userId);
+            log.info("모든 퀴즈 캐시 삭제: userId={}", userId);
+            return ApiResponse.onSuccess("모든 퀴즈 캐시가 삭제되었습니다.");
+        }
+    }
 }

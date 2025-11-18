@@ -47,7 +47,7 @@ public class AiServerClient {
                         return Mono.error(new RuntimeException("AI 서버 응답 실패"));
                     })
                     .bodyToMono(QuizResDto.class)
-                    .timeout(Duration.ofSeconds(10))
+                    .timeout(Duration.ofSeconds(100))
                     .block();  // 동기 방식으로 대기
 
             if (response != null) {
