@@ -2,10 +2,7 @@ package com.example.whiplash.quiz.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
 import com.example.whiplash.config.security.UserPrincipal;
-import com.example.whiplash.quiz.dto.request.ChallengeSubmitReqDto;
-import com.example.whiplash.quiz.dto.request.MixedQuizReqDto;
-import com.example.whiplash.quiz.dto.request.QuizResultReqDto;
-import com.example.whiplash.quiz.dto.request.SmartMixReqDto;
+import com.example.whiplash.quiz.dto.request.*;
 import com.example.whiplash.quiz.dto.response.MixedQuizResDto;
 import com.example.whiplash.quiz.dto.response.QuizResDto;
 import com.example.whiplash.quiz.dto.response.WeeklyChallengeResDto;
@@ -13,12 +10,16 @@ import com.example.whiplash.quiz.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/api/quiz")
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class QuizController {
 
     /**
      * 퀴즈 조회 API
-     *
+     * <p>
      * GET /api/quiz?userId=1001&term=ETF
      * GET /api/quiz?userId=1001  (랜덤)
      */
@@ -146,6 +147,28 @@ public class QuizController {
                 weeklyChallengeService.submitChallenge(userId, request);
 
         return ApiResponse.onSuccess(result);
+    }
+
+    /**
+     * 기사 기반 퀴즈 조회
+     * <p>
+     * GET /api/quiz/article?articleId=article123&count=5
+     */
+    @GetMapping("/article")
+    @Operation(summary = "기사 기반 퀴즈 조회", description = "특정 기사를 기반으로 퀴즈를 생성하여 조회하는 API")
+    public ApiResponse<QuizResDto> getArticleQuiz(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam String articleId,
+            @RequestParam(defaultValue = "3") @Min(1) @Max(10) Integer count
+    ) {
+        Long userId = principal.getUserId();
+
+        log.info("기사 기반 퀴즈 조회 요청: userId={}, articleId={}, count={}",
+                userId, articleId, count);
+
+        QuizResDto response = quizService.getArticleQuiz(userId, articleId, count);
+
+        return ApiResponse.onSuccess(response);
     }
 
     /**
