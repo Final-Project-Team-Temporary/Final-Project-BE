@@ -86,6 +86,35 @@ public class AsyncConfig implements AsyncConfigurer {
         return executor;
     }
 
+    /**
+     * ⭐ 기사 보강 전용 Executor
+     */
+    @Bean(name = "articleEnrichmentExecutor")
+    public Executor articleEnrichmentExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
+        // 스레드 풀 설정
+        executor.setCorePoolSize(2);              // 기본 스레드 수
+        executor.setMaxPoolSize(5);               // 최대 스레드 수
+        executor.setQueueCapacity(100);           // 큐 용량
+        executor.setThreadNamePrefix("article-enrichment-");  // 스레드 이름
+
+        // 스레드 풀이 가득 찼을 때 정책
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+
+        // 애플리케이션 종료 시 대기
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+
+        // 초기화
+        executor.initialize();
+
+        log.info("✅ ArticleEnrichmentExecutor 초기화 완료: corePoolSize={}, maxPoolSize={}",
+                executor.getCorePoolSize(), executor.getMaxPoolSize());
+
+        return executor;
+    }
+
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
         return (throwable, method, params) -> {
