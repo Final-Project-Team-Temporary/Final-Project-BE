@@ -1,6 +1,9 @@
 package com.example.whiplash.quiz.client;
 
-import com.example.whiplash.quiz.dto.QuizDto;
+import com.example.whiplash.quiz.client.dto.KeywordExtractionResponse;
+import com.example.whiplash.quiz.client.dto.KeywordTermDto;
+import com.example.whiplash.quiz.client.dto.StockDto;
+import com.example.whiplash.quiz.client.dto.StockExtractionResponse;
 import com.example.whiplash.quiz.dto.request.ArticleQuizCreateReqDto;
 import com.example.whiplash.quiz.dto.request.QuizCreateReqDto;
 import com.example.whiplash.quiz.dto.response.QuizResDto;
@@ -14,7 +17,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -131,6 +136,79 @@ public class AiServerClient {
         } catch (Exception e) {
             log.error("AI 서버 통신 실패: articleId={}", articleId, e);
             throw new RuntimeException("퀴즈 생성 실패: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 기사 키워드 추출
+     * @param title
+     * @param content
+     * @return
+     */
+    public List<KeywordTermDto> extractKeywordsFromArticle(String title, String content) {
+        log.info("AI 서버 키워드 추출 요청: title={}", title);
+
+        Map<String, String> requestBody = Map.of(
+                "title", title,
+                "content", content
+        );
+
+        try {
+            KeywordExtractionResponse response = webClient.post()
+                    .uri("/keyword/terms")
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(KeywordExtractionResponse.class)
+                    .timeout(Duration.ofSeconds(15))
+                    .block();
+
+            if (response != null && response.getResults() != null) {
+                log.info("키워드 추출 완료: count={}", response.getResults().size());
+                return response.getResults();
+            }
+
+            return Collections.emptyList();
+
+        } catch (Exception e) {
+            log.error("키워드 추출 실패: title={}", title, e);
+            return Collections.emptyList();
+        }
+
+    }
+
+    /**
+     * 기사 기반 주식 종목 추출
+     * @param title
+     * @param content
+     * @return
+     */
+    public List<StockDto> extractStocksFromArticle(String title, String content) {
+        log.info("AI 서버 주식 종목 추출 요청: title={}", title);
+
+        Map<String, String> requestBody = Map.of(
+                "title", title,
+                "content", content
+        );
+
+        try {
+            StockExtractionResponse response = webClient.post()
+                    .uri("/keyword/stock_id")
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(StockExtractionResponse.class)
+                    .timeout(Duration.ofSeconds(15))
+                    .block();
+
+            if (response != null && response.getMatchedStocks() != null) {
+                log.info("주식 추출 완료: count={}", response.getMatchedStocks().size());
+                return response.getMatchedStocks();
+            }
+
+            return Collections.emptyList();
+
+        } catch (Exception e) {
+            log.error("주식 추출 실패: title={}", title, e);
+            return Collections.emptyList();
         }
     }
 }

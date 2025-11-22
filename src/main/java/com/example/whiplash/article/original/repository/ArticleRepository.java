@@ -22,4 +22,6 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
 
     @Query("{ $or: [ { title: { $regex: ?0, $options: 'i' } }, { content: { $regex: ?0, $options: 'i' } } ], summaryStatus: 'COMPLETED' }")
     Page<Article> searchByKeyword(String keyword, Pageable pageable);
+
+    List<Article> findByPublishedAtAfter(LocalDateTime sevenDaysAgo);
 }
