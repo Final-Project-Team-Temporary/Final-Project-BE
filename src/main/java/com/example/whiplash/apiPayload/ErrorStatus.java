@@ -42,7 +42,10 @@ public enum ErrorStatus {
     // 용어 관련
     TERM_SAVE_FAILED("J402", "용어 저장에 실패했습니다."),
     TERM_ALREADY_IN_DICTIONARY("J403", "이미 용어사전에 저장된 용어입니다."),
-    
+
+    // AI 서버 관련
+    AI_SERVER_ERROR("AI001", "AI 서버 통신 중 오류가 발생했습니다"),
+
     // 시스템 관련
     INTERNAL_SERVER_ERROR("E999", "서버 내부 오류가 발생했습니다");
 
