@@ -5,5 +5,6 @@ import java.util.List;
 public record SummarizedArticleResponse(
     List<ArticleSummaryDTO> summaries,
     List<KeywordResDto> keywords,
-    List<RelatedStockResDto> stocks
+    List<RelatedStockResDto> stocks,
+    boolean isBookmarked
 ) {}

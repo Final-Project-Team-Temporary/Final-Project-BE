@@ -21,7 +21,9 @@ public class ArticleConverter {
         return new ArticleListItemResponse(
                 article.getId(),
                 article.getTitle(),
-                article.getPublishedAt()
+                article.getPublishedAt(),
+                null,
+                null
         );
     }
 
@@ -50,7 +52,8 @@ public class ArticleConverter {
     public static SummarizedArticleResponse toSummarizedArticleResponse(
             List<SummarizedArticle> summarizedArticles,
             List<ArticleMatchedKeyword> keywords,
-            List<ArticleStock> stocks
+            List<ArticleStock> stocks,
+            boolean isBookmarked
     ) {
         List<ArticleSummaryDTO> summaries = summarizedArticles.stream()
                 .map(ArticleConverter::toArticleSummaryDTO)
@@ -73,7 +76,7 @@ public class ArticleConverter {
                         .build())
                 .toList();
 
-        return new SummarizedArticleResponse(summaries, keywordDTOs, stockDTOs);
+        return new SummarizedArticleResponse(summaries, keywordDTOs, stockDTOs, isBookmarked);
     }
 
     @Deprecated
