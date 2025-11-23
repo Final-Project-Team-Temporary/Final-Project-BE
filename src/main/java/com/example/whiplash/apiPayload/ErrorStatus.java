@@ -47,8 +47,12 @@ public enum ErrorStatus {
     AI_SERVER_ERROR("AI001", "AI 서버 통신 중 오류가 발생했습니다"),
 
     // 시스템 관련
-    INTERNAL_SERVER_ERROR("E999", "서버 내부 오류가 발생했습니다");
+    INTERNAL_SERVER_ERROR("E999", "서버 내부 오류가 발생했습니다"),
 
+    // 북마크 관련
+    BOOKMARK_ALREADY_EXISTS("B401", "해당 기사는 이미 북마크되어있습니다." ),
+    BOOKMARK_NOT_FOUND("B402", "해당 기사에 대한 북마크 이력을 찾을 수 없습니다." ),
+    ;
     private final String code;
     private final String message;
 

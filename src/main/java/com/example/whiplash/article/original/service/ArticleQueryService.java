@@ -11,7 +11,10 @@ import com.example.whiplash.article.summary.repository.SummarizedArticleReposito
 import com.example.whiplash.article.original.web.dto.response.ArticleDetailResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleListItemResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleResponse;
+import com.example.whiplash.bookmark.entity.ArticleBookmark;
+import com.example.whiplash.bookmark.repository.ArticleBookmarkRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -28,10 +32,46 @@ public class ArticleQueryService {
 
     private final ArticleRepository articleRepository;
     private final SummarizedArticleRepository summarizedArticleRepository;
+    private final ArticleBookmarkRepository bookmarkRepository;
 
-    public Page<ArticleListItemResponse> getArticleList(Pageable pageable) {
+    public Page<ArticleListItemResponse> getArticleList(Long userId, Pageable pageable) {
         Page<Article> articles = articleRepository.findBySummaryStatus(SummaryStatus.COMPLETED, pageable);
-        return articles.map(ArticleConverter::toArticleListItemResponse);
+
+        // 2. 기사 ID 목록 추출
+        List<String> articleIds = articles.getContent().stream()
+                .map(Article::getId)
+                .collect(Collectors.toList());
+
+        // 3. ⭐ 사용자의 북마크 중 해당 기사들만 조회 (IN 쿼리 1회)
+        List<ArticleBookmark> bookmarks = bookmarkRepository.findByUserIdAndArticleIdIn(
+                userId,
+                articleIds
+        );
+
+        // 4. ⭐ 북마크 맵 생성 (빠른 조회를 위해)
+        Map<String, ArticleBookmark> bookmarkMap = bookmarks.stream()
+                .collect(Collectors.toMap(
+                        ArticleBookmark::getArticleId,
+                        bookmark -> bookmark
+                ));
+
+        // 5. DTO 변환 (북마크 여부 포함)
+        Page<ArticleListItemResponse> response = articles.map(article -> {
+            ArticleBookmark bookmark = bookmarkMap.get(article.getId());
+
+            return ArticleListItemResponse.builder()
+                    .id(article.getId())
+                    .title(article.getTitle())
+                    .publishedAt(article.getPublishedAt())
+                    .isBookmarked(bookmark != null)  // ⭐ 북마크 여부
+                    .bookmarkId(bookmark != null ? bookmark.getId() : null)  // ⭐ 북마크 ID
+                    .build();
+        });
+
+        log.info("✅ 기사 목록 조회 완료: totalElements={}, bookmarkedCount={}",
+                response.getTotalElements(), bookmarks.size());
+
+        return response;
     }
 
     public ArticleResponse getOriginalArticle(String articleId) {
