@@ -28,13 +28,12 @@ public class QuizController {
 
     private final QuizService quizService;
     private final MixedQuizService mixedQuizService;
-    private final QuizResultService quizResultService;
     private final SmartMixService smartMixService;
     private final WeeklyChallengeService weeklyChallengeService;
 
     /**
      * 퀴즈 조회 API
-     * <p>
+     *
      * GET /api/quiz?userId=1001&term=ETF
      * GET /api/quiz?userId=1001  (랜덤)
      */
@@ -79,22 +78,7 @@ public class QuizController {
     }
 
     /**
-     * 퀴즈 결과 저장
-     */
-    @PostMapping("/results")
-    public ApiResponse<String> saveQuizResult(
-            @AuthenticationPrincipal UserPrincipal principal,
-            @Valid @RequestBody QuizResultReqDto request
-    ) {
-
-        Long userId = principal.getUserId();
-
-        quizResultService.saveQuizResult(userId, request);
-        return ApiResponse.onSuccess("결과가 저장되었습니다.");
-    }
-
-    /**
-     * ⭐ 신규 API: 스마트 랜덤 모의고사
+     * 스마트 랜덤 모의고사
      */
     @PostMapping("/smart-mix")
     public ApiResponse<MixedQuizResDto> createSmartMixQuiz(

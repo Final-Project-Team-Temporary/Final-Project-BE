@@ -1,6 +1,6 @@
-package com.example.whiplash.quiz.repository;
+package com.example.whiplash.log.quiz.repository;
 
-import com.example.whiplash.quiz.entity.QuizResult;
+import com.example.whiplash.log.quiz.entity.TermQuizSolveLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,18 +8,16 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface QuizResultRepository extends JpaRepository<QuizResult, Long> {
+public interface TermQuizSolveLogRepository extends JpaRepository<TermQuizSolveLog, Long> {
 
-    /**
-     * 사용자의 모든 퀴즈 결과 조회
-     */
-    List<QuizResult> findByUserId(Long userId);
+    List<TermQuizSolveLog> findByUserId(Long userId);
 
     /**
      * 특정 용어의 평균 정답률 조회
      */
-    @Query("SELECT AVG(qr.accuracy) FROM QuizResult qr " +
-            "WHERE qr.userId = :userId AND qr.term = :term")
+    @Query("SELECT AVG(CASE WHEN r.isCorrect = true THEN 1.0 ELSE 0.0 END) " +
+            "FROM TermQuizSolveLog t JOIN t.results r " +
+            "WHERE t.userId = :userId AND r.term = :term")
     Double findAverageAccuracyByUserIdAndTerm(
             @Param("userId") Long userId,
             @Param("term") String term
@@ -28,8 +26,8 @@ public interface QuizResultRepository extends JpaRepository<QuizResult, Long> {
     /**
      * 특정 용어의 마지막 풀이 시간 조회
      */
-    @Query("SELECT MAX(qr.solvedAt) FROM QuizResult qr " +
-            "WHERE qr.userId = :userId AND qr.term = :term")
+    @Query("SELECT MAX(t.solvedAt) FROM TermQuizSolveLog t JOIN t.results r " +
+            "WHERE t.userId = :userId AND r.term = :term")
     LocalDateTime findLastSolvedAtByUserIdAndTerm(
             @Param("userId") Long userId,
             @Param("term") String term
@@ -38,11 +36,11 @@ public interface QuizResultRepository extends JpaRepository<QuizResult, Long> {
     /**
      * 정답률 낮은 용어 조회 (정답률 낮은 순)
      */
-    @Query("SELECT qr.term, AVG(qr.accuracy) as avgAccuracy " +
-            "FROM QuizResult qr " +
-            "WHERE qr.userId = :userId " +
-            "GROUP BY qr.term " +
-            "HAVING AVG(qr.accuracy) < :threshold " +
+    @Query("SELECT r.term, AVG(CASE WHEN r.isCorrect = true THEN 1.0 ELSE 0.0 END) as avgAccuracy " +
+            "FROM TermQuizSolveLog t JOIN t.results r " +
+            "WHERE t.userId = :userId " +
+            "GROUP BY r.term " +
+            "HAVING AVG(CASE WHEN r.isCorrect = true THEN 1.0 ELSE 0.0 END) < :threshold " +
             "ORDER BY avgAccuracy ASC")
     List<Object[]> findWeakTerms(
             @Param("userId") Long userId,
@@ -50,14 +48,14 @@ public interface QuizResultRepository extends JpaRepository<QuizResult, Long> {
     );
 
     /**
-     * 특정 기간 이후 풀지 않은 용어들 (UserTerms와 조인 필요)
+     * 특정 기간 이후 풀지 않은 용어들
      */
     @Query("SELECT ut.terms.termName FROM UserTerms ut " +
             "WHERE ut.user.id = :userId " +
             "AND ut.terms.termName NOT IN (" +
-            "  SELECT DISTINCT qr.term FROM QuizResult qr " +
-            "  WHERE qr.userId = :userId " +
-            "  AND qr.solvedAt >= :since" +
+            "  SELECT DISTINCT r.term FROM TermQuizSolveLog t JOIN t.results r " +
+            "  WHERE t.userId = :userId " +
+            "  AND t.solvedAt >= :since" +
             ")")
     List<String> findDormantTerms(
             @Param("userId") Long userId,

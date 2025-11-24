@@ -4,7 +4,7 @@ import com.example.whiplash.quiz.dto.TermScore;
 import com.example.whiplash.quiz.dto.request.MixedQuizReqDto;
 import com.example.whiplash.quiz.dto.request.SmartMixReqDto;
 import com.example.whiplash.quiz.dto.response.MixedQuizResDto;
-import com.example.whiplash.quiz.repository.QuizResultRepository;
+import com.example.whiplash.log.quiz.repository.TermQuizSolveLogRepository;
 import com.example.whiplash.term.entity.UserTerms;
 import com.example.whiplash.term.repository.UserTermsRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class SmartMixService {
 
     private final UserTermsRepository userTermsRepository;
-    private final QuizResultRepository quizResultRepository;
+    private final TermQuizSolveLogRepository termQuizSolveLogRepository;
     private final MixedQuizService mixedQuizService;
 
     /**
@@ -98,7 +98,7 @@ public class SmartMixService {
             }
 
             // 2. 정답률 낮은 용어 → 가중치 30
-            Double avgAccuracy = quizResultRepository
+            Double avgAccuracy = termQuizSolveLogRepository
                     .findAverageAccuracyByUserIdAndTerm(userId, termName);
 
             if (avgAccuracy != null && avgAccuracy < 0.7) {
@@ -106,7 +106,7 @@ public class SmartMixService {
             }
 
             // 3. 오래 안 푼 용어 → 가중치 20
-            LocalDateTime lastSolved = quizResultRepository
+            LocalDateTime lastSolved = termQuizSolveLogRepository
                     .findLastSolvedAtByUserIdAndTerm(userId, termName);
 
             if (lastSolved == null) {
