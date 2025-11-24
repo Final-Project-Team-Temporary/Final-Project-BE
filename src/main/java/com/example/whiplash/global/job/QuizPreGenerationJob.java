@@ -1,7 +1,6 @@
-package com.example.whiplash.quiz.job;
+package com.example.whiplash.global.job;
 
 import com.example.whiplash.quiz.service.QuizBatchService;
-import com.example.whiplash.quiz.service.QuizService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;

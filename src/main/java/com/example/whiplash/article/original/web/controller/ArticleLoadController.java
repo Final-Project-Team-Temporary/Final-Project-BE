@@ -6,12 +6,14 @@ import com.example.whiplash.article.original.service.ArticleQueryService;
 import com.example.whiplash.article.original.web.dto.response.ArticleListItemResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleListResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleResponse;
+import com.example.whiplash.config.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -25,11 +27,14 @@ public class ArticleLoadController {
 
     @GetMapping("/summarized")
     public ResponseEntity<ApiResponse<ArticleListResponse>> getArticleList(
+            @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
+        Long userId = principal.getUserId();
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "publishedAt"));
-        Page<ArticleListItemResponse> articles = articleQueryService.getArticleList(pageable);
+        Page<ArticleListItemResponse> articles = articleQueryService.getArticleList(userId, pageable);
         ArticleListResponse response = ArticleListResponse.from(articles);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));

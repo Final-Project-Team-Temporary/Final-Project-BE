@@ -7,6 +7,7 @@ import com.example.whiplash.quiz.service.QuizPreGenerationService;
 import com.example.whiplash.term.dto.request.TermAddDto;
 import com.example.whiplash.term.dto.response.DictionaryTermListResDto;
 import com.example.whiplash.term.dto.response.TermExplainResDto;
+import com.example.whiplash.term.dto.response.TermSuggestionResponse;
 import com.example.whiplash.term.entity.Terms;
 import com.example.whiplash.term.entity.UserTerms;
 import com.example.whiplash.term.repository.TermsRepository;
@@ -16,6 +17,9 @@ import com.example.whiplash.user.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Term;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @Transactional(readOnly = true)
 public class TermService {
 
@@ -89,7 +93,7 @@ public class TermService {
     public TermExplainResDto getTermExplanation(String term) {
         Optional<Terms> findTerm = termsRepository.findByTermName(term);
 
-        if(findTerm.isPresent()) {
+        if (findTerm.isPresent()) {
             Terms terms = findTerm.get();
             return new TermExplainResDto(terms.getTermName(), terms.getAiExplanation());
         }
@@ -97,7 +101,95 @@ public class TermService {
         return aiServerClient.getTermExplain(term);
     }
 
+    /**
+     * 용어사전에서 용어 삭제
+     */
+    @Transactional
+    public void deleteTerm(Long userId, Long userTermsId) {
 
+        UserTerms userTerms = userTermsRepository.findById(userTermsId)
+                .orElseThrow(() -> new WhiplashException(ErrorStatus.TERM_NOT_FOUND));
+
+        if (!userTerms.getUser().getId().equals(userId)) {
+            throw new WhiplashException(ErrorStatus.NOT_YOUR_DICTIONARY_TERM);
+        }
+
+        userTermsRepository.deleteById(userTermsId);
+    }
+
+    /**
+     * 용어 검색
+     *
+     * @param userId
+     * @param keyword
+     * @param pageable
+     * @return
+     */
+    public Page<DictionaryTermListResDto> searchTerms(Long userId, String keyword, Pageable pageable) {
+        log.info("🔍 용어 검색: userId={}, keyword={}", userId, keyword);
+
+        // 1. 키워드 검증
+        if (keyword == null || keyword.trim().isEmpty()) {
+            log.warn("⚠️ 검색 키워드 없음");
+            throw new WhiplashException(ErrorStatus.INVALID_SEARCH_KEYWORD);
+        }
+
+        // 2. 키워드 전처리 (공백 제거, 소문자 변환)
+        String sanitizedKeyword = keyword.trim();
+
+        // 3. 검색 실행
+        Page<UserTerms> terms = userTermsRepository.searchByTermContaining(
+                userId,
+                sanitizedKeyword,
+                pageable
+        );
+
+        Page<DictionaryTermListResDto> response = terms.map(term ->
+                DictionaryTermListResDto.builder()
+                        .userTermId(term.getId())
+                        .termName(term.getTerms().getTermName())
+                        .termDescription(term.getTerms().getAiExplanation())
+                        .createdAt(term.getTerms().getCreatedAt())
+                        .build());
+
+        log.info("✅ 용어 검색 완료: totalElements={}", response.getTotalElements());
+
+
+        return response;
+    }
+
+    /**
+     * ⭐ 용어 자동완성 제안
+     */
+    @Transactional(readOnly = true)
+    public TermSuggestionResponse getSuggestions(Long userId, String keyword) {
+        log.info("💡 자동완성 요청: userId={}, keyword={}", userId, keyword);
+
+        // 1. 키워드 검증
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return TermSuggestionResponse.builder()
+                    .suggestions(List.of())
+                    .build();
+        }
+
+        // 2. 키워드 전처리
+        String sanitizedKeyword = keyword.trim();
+
+        // 3. 최대 10개 제안
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<String> suggestions = userTermsRepository.findTermSuggestions(
+                userId,
+                sanitizedKeyword,
+                pageable
+        );
+
+        log.info("✅ 자동완성 완료: count={}", suggestions.size());
+
+        return TermSuggestionResponse.builder()
+                .suggestions(suggestions)
+                .build();
+    }
 
 
     // Terms 조회/생성 로직 분리 (가독성 향상)

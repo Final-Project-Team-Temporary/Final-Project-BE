@@ -1,5 +1,7 @@
 package com.example.whiplash.global.config;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -40,7 +42,17 @@ public class ObjectMapperConfig {
 
 		setLocalDateTimeModule(objectMapper);
 		setDeserializationConfig(objectMapper);
-		setPolymorphicTypeValidation(objectMapper);  // ⭐ Redis용은 타입 정보 활성화
+//		setPolymorphicTypeValidation(objectMapper);  // ⭐ Redis용은 타입 정보 활성화
+
+		// ⭐ 모든 필드 접근 허용
+		objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+
+		// ⭐⭐⭐ 타입 정보 활성화 (핵심!)
+		objectMapper.activateDefaultTyping(
+				LaissezFaireSubTypeValidator.instance,
+				ObjectMapper.DefaultTyping.NON_FINAL,
+				com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
+		);
 
 		return objectMapper;
 	}

@@ -1,5 +1,9 @@
 package com.example.whiplash.quiz.service;
 
+import com.example.whiplash.apiPayload.ErrorStatus;
+import com.example.whiplash.apiPayload.exception.WhiplashException;
+import com.example.whiplash.article.original.domain.document.Article;
+import com.example.whiplash.article.original.repository.ArticleRepository;
 import com.example.whiplash.quiz.client.AiServerClient;
 import com.example.whiplash.quiz.dto.response.QuizResDto;
 import com.example.whiplash.term.entity.Terms;
@@ -23,8 +27,10 @@ public class QuizService {
     private final AiServerClient aiServerClient;
     private final UserTermsRepository userTermsRepository;
     private final QuizPreGenerationService quizPreGenerationService;
+    private final ArticleRepository articleRepository;
 
     private static final String CACHE_KEY_PREFIX = "quiz:single:";
+    private static final String ARTICLE_CACHE_KEY_PREFIX = "quiz:article:";
     private static final Duration CACHE_TTL = Duration.ofDays(7);
 
     /**
@@ -43,6 +49,46 @@ public class QuizService {
             // Case 2: 랜덤 퀴즈
             return getRandomQuiz(userId);
         }
+    }
+
+    /**
+     * 기사 기반 퀴즈 조회
+     * @param userId 사용자 ID
+     * @param articleId 기사 ID
+     * @param count 생성할 퀴즈 개수
+     * @return QuizResDto
+     */
+    public QuizResDto getArticleQuiz(Long userId, String articleId, Integer count) {
+
+        // 1. 기사 존재 여부 확인
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new WhiplashException(ErrorStatus.ARTICLE_NOT_FOUND));
+
+        // 2. 캐시 키 생성 (count 포함)
+        String cacheKey = buildArticleQuizKey(userId, articleId, count);
+
+        // 3. Redis 캐시 확인
+        QuizResDto cached = (QuizResDto) redisTemplate.opsForValue().get(cacheKey);
+
+        if (cached != null) {
+            log.info("✅ 캐시 히트: userId={}, articleId={}, count={}",
+                    userId, articleId, count);
+            return cached;
+        }
+
+        // 4. 캐시 미스 - AI 서버 호출
+        log.warn("⚠️ 캐시 미스 - 실시간 생성: userId={}, articleId={}, count={}",
+                userId, articleId, count);
+
+        QuizResDto response = generateArticleQuiz(userId, articleId, count);
+
+        // 5. 캐시 저장
+        redisTemplate.opsForValue().set(cacheKey, response, CACHE_TTL);
+
+        log.info("퀴즈 생성 완료 및 캐싱: userId={}, articleId={}, count={}",
+                userId, articleId, count);
+
+        return response;
     }
 
     /**
@@ -93,6 +139,28 @@ public class QuizService {
     }
 
     /**
+     * 실시간 기사 퀴즈 생성 (캐시 미스 시)
+     */
+    private QuizResDto generateArticleQuiz(Long userId, String articleId, Integer count) {
+        try {
+            long startTime = System.currentTimeMillis();
+
+            // AI 서버 호출
+            QuizResDto freshQuiz = aiServerClient.getQuizzesByArticle(articleId, count);
+
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            log.info("🤖 AI 서버 퀴즈 생성 완료: articleId={}, count={}, elapsed={}ms",
+                    articleId, count, elapsedTime);
+
+            return freshQuiz;
+
+        } catch (Exception e) {
+            log.error("❌ 퀴즈 생성 실패: userId={}, articleId={}, count={}", userId, articleId, count, e);
+            throw new WhiplashException(ErrorStatus.AI_SERVER_ERROR);
+        }
+    }
+
+    /**
      * 랜덤 퀴즈 조회 (사용자가 저장한 용어 중에서)
      */
     private QuizResDto getRandomQuiz(Long userId) {
@@ -118,5 +186,13 @@ public class QuizService {
      */
     private String buildCacheKey(Long userId, String term) {
         return CACHE_KEY_PREFIX + userId + ":" + term;
+    }
+
+    /**
+     * 기사 기반 퀴즈 저장용 캐시 키 생성
+     * count를 포함하여 동일한 기사라도 다른 개수의 퀴즈는 별도로 캐싱
+     */
+    private String buildArticleQuizKey(Long userId, String articleId, Integer count) {
+        return ARTICLE_CACHE_KEY_PREFIX + userId + ":" + articleId + ":" + count;
     }
 }

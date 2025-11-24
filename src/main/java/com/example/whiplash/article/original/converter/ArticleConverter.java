@@ -6,7 +6,11 @@ import com.example.whiplash.article.original.web.dto.response.ArticleDetailRespo
 import com.example.whiplash.article.original.web.dto.response.ArticleListItemResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleResponse;
 import com.example.whiplash.article.summary.web.dto.response.ArticleSummaryDTO;
+import com.example.whiplash.article.summary.web.dto.response.KeywordResDto;
+import com.example.whiplash.article.summary.web.dto.response.RelatedStockResDto;
 import com.example.whiplash.article.summary.web.dto.response.SummarizedArticleResponse;
+import com.example.whiplash.domain.entity.ArticleMatchedKeyword;
+import com.example.whiplash.domain.entity.ArticleStock;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,7 +21,9 @@ public class ArticleConverter {
         return new ArticleListItemResponse(
                 article.getId(),
                 article.getTitle(),
-                article.getPublishedAt()
+                article.getPublishedAt(),
+                null,
+                null
         );
     }
 
@@ -43,11 +49,34 @@ public class ArticleConverter {
         );
     }
 
-    public static SummarizedArticleResponse toSummarizedArticleResponse(List<SummarizedArticle> summarizedArticles) {
+    public static SummarizedArticleResponse toSummarizedArticleResponse(
+            List<SummarizedArticle> summarizedArticles,
+            List<ArticleMatchedKeyword> keywords,
+            List<ArticleStock> stocks,
+            boolean isBookmarked
+    ) {
         List<ArticleSummaryDTO> summaries = summarizedArticles.stream()
                 .map(ArticleConverter::toArticleSummaryDTO)
                 .collect(Collectors.toList());
-        return new SummarizedArticleResponse(summaries);
+
+        List<KeywordResDto> keywordDTOs = keywords.stream()
+                .map(keyword -> KeywordResDto.builder()
+                        .term(keyword.getTerm())
+                        .termSummary(keyword.getTermSummary())
+                        .build())
+                .toList();
+
+        // 3. ⭐ 주식 변환
+        List<RelatedStockResDto> stockDTOs = stocks.stream()
+                .map(stock -> RelatedStockResDto.builder()
+                        .stockName(stock.getStockName())
+                        .stockCode(stock.getStockCode())
+                        .market(stock.getMarket())
+                        .sector(stock.getSector())
+                        .build())
+                .toList();
+
+        return new SummarizedArticleResponse(summaries, keywordDTOs, stockDTOs, isBookmarked);
     }
 
     @Deprecated
