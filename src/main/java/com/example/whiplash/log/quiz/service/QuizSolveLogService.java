@@ -1,6 +1,6 @@
 package com.example.whiplash.log.quiz.service;
 
-import com.example.whiplash.daily.learning.entity.LearningPerformedEvent;
+import com.example.whiplash.daily.learning.event.LearningPerformedEvent;
 import com.example.whiplash.daily.learning.entity.LearningType;
 import com.example.whiplash.global.event.DomainEventPublisher;
 import com.example.whiplash.log.quiz.dto.request.TermQuizSolveRequest;
@@ -30,6 +30,7 @@ public class QuizSolveLogService {
         TermQuizSolveRequest request,
         LocalDateTime solvedAt
     ) {
+        eventPublisher.publish(new LearningPerformedEvent(userId, solvedAt, LearningType.QUIZ));
 
         return saveTermQuizSolveLog(userId, request, solvedAt);
     }
