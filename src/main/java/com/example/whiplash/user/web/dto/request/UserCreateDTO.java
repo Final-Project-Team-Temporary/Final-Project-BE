@@ -2,11 +2,15 @@ package com.example.whiplash.user.web.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Builder
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserCreateDTO {
     @NotBlank(message = "회원 이름은 필수정보 입니다.")
     private String username;

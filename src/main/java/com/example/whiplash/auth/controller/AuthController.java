@@ -60,7 +60,8 @@ public class AuthController {
     }
 
     @PostMapping("/complete-registration")
-    public ApiResponse<?> completeRegistration(@AuthenticationPrincipal User user, @Valid @RequestBody ProfileRegisterDTO request) {
+    public ApiResponse<?> completeRegistration(@AuthenticationPrincipal User user,
+        @Valid @RequestBody ProfileRegisterDTO request) {
 
         return ApiResponse.onSuccess(authService.completeRegistration(user.getUsername(), request));
     }
