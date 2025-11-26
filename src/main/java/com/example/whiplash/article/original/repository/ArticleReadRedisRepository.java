@@ -2,6 +2,7 @@ package com.example.whiplash.article.original.repository;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
@@ -26,7 +27,7 @@ public class ArticleReadRedisRepository {
 		String key = getKey(userId);
 
 		// 현재 시간을 timestamp로 사용 (score)
-		double score = (double) System.currentTimeMillis();
+		double score = (double)System.currentTimeMillis();
 		redisTemplate.opsForZSet().add(key, articleId, score);
 
 		redisTemplate.expire(key, Duration.ofDays(1));
@@ -44,7 +45,7 @@ public class ArticleReadRedisRepository {
 	}
 
 	private String getKey(Long userId) {
-		String today = LocalDate.now()
+		String today = LocalDate.now(ZoneId.of("Asia/Seoul"))
 			.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		return String.format(KEY, userId, today);
 	}
