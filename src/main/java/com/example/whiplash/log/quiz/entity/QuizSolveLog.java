@@ -1,6 +1,8 @@
 package com.example.whiplash.log.quiz.entity;
 
 import com.example.whiplash.domain.entity.BaseEntity;
+import com.example.whiplash.domain.entity.SuperBaseEntity;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,7 +23,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @Entity
-public abstract class QuizSolveLog extends BaseEntity {
+public abstract class QuizSolveLog extends SuperBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

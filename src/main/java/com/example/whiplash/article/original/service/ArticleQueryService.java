@@ -12,6 +12,7 @@ import com.example.whiplash.article.summary.repository.SummarizedArticleReposito
 import com.example.whiplash.article.original.web.dto.response.ArticleDetailResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleListItemResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleResponse;
+import com.example.whiplash.article.original.web.dto.response.RecentlyViewedArticleResponse;
 import com.example.whiplash.bookmark.entity.ArticleBookmark;
 import com.example.whiplash.bookmark.repository.ArticleBookmarkRepository;
 import com.example.whiplash.daily.learning.entity.LearningType;
@@ -27,10 +28,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -160,5 +164,36 @@ public class ArticleQueryService {
 	public Page<ArticleListItemResponse> searchArticles(String keyword, Pageable pageable) {
 		Page<Article> articles = articleRepository.searchByKeyword(keyword, pageable);
 		return articles.map(ArticleConverter::toArticleListItemResponse);
+	}
+
+	public List<RecentlyViewedArticleResponse> getRecentlyViewedArticles(Long userId, LocalDate date) {
+		// 1. Redis ZSET에서 최신 10개 기사 ID 조회 (시간순 정렬됨)
+		Set<String> articleIds = articleReadRedisRepository.getArticleIdsReadByUserOnDate(userId, date, 10);
+
+		if (articleIds == null || articleIds.isEmpty()) {
+			log.info("사용자 {}의 {}에 읽은 기사가 없습니다", userId, date);
+			return Collections.emptyList();
+		}
+
+		// 2. MongoDB에서 기사 정보 조회 (배치 쿼리)
+		List<Article> articles = articleRepository.findAllById(articleIds);
+
+		// 3. Redis에서 반환된 순서를 유지하기 위해 Map 생성
+		Map<String, Article> articleMap = articles.stream()
+			.collect(Collectors.toMap(Article::getId, article -> article));
+
+		// 4. Redis 순서대로 DTO 변환 (최신 읽은 순서 유지)
+		List<RecentlyViewedArticleResponse> response = articleIds.stream()
+			.map(articleMap::get)
+			.filter(article -> article != null)  // MongoDB에 없는 기사 필터링
+			.map(article -> RecentlyViewedArticleResponse.builder()
+				.id(article.getId())
+				.title(article.getTitle())
+				.build())
+			.collect(Collectors.toList());
+
+		log.info("✅ 사용자 {}의 {} 최근 조회 기사: {}건", userId, date, response.size());
+
+		return response;
 	}
 }

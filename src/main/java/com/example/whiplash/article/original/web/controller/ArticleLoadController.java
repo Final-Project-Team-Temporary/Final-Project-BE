@@ -6,6 +6,7 @@ import com.example.whiplash.article.original.service.ArticleQueryService;
 import com.example.whiplash.article.original.web.dto.response.ArticleListItemResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleListResponse;
 import com.example.whiplash.article.original.web.dto.response.ArticleResponse;
+import com.example.whiplash.article.original.web.dto.response.RecentlyViewedArticleResponse;
 import com.example.whiplash.config.security.UserPrincipal;
 import com.example.whiplash.global.util.SecurityContextUtils;
 
@@ -17,9 +18,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -66,6 +70,18 @@ public class ArticleLoadController {
 		ArticleListResponse response = ArticleListResponse.from(articles);
 
 		return ResponseEntity.ok(ApiResponse.onSuccess(response));
+	}
+
+	@GetMapping("/recently-viewed")
+	public ResponseEntity<ApiResponse<List<RecentlyViewedArticleResponse>>> getRecentlyViewedArticles(
+		@AuthenticationPrincipal UserPrincipal principal,
+		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+
+		Long userId = principal.getUserId();
+
+		List<RecentlyViewedArticleResponse> articles = articleQueryService.getRecentlyViewedArticles(userId, date);
+
+		return ResponseEntity.ok(ApiResponse.onSuccess(articles));
 	}
 
 	/**
