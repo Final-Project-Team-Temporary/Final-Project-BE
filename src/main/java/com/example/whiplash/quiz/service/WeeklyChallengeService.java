@@ -54,6 +54,8 @@ public class WeeklyChallengeService {
         Optional<ChallengeAttempt> attemptOpt = challengeAttemptRepository
                 .findByUserIdAndChallengeId(userId, challenge.getId());
 
+        log.info("weekly challenge : {}", challenge.getQuizzesJson());
+
         // 4. 퀴즈 데이터 (이미 도전했으면 null)
         List<MixedQuizResDto.QuizWithTerm> quizzes = attemptOpt.isPresent()
                 ? null
@@ -266,23 +268,31 @@ public class WeeklyChallengeService {
      */
     private String convertToJson(Object obj) {
         try {
-            return objectMapper.writeValueAsString(obj);
+            String json = objectMapper.writeValueAsString(obj);
+            log.debug("JSON 변환 성공: type={}, length={}", obj.getClass().getSimpleName(), json.length());
+            return json;
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("JSON 변환 실패", e);
+            log.error("JSON 변환 실패: obj={}", obj, e);
+            throw new RuntimeException("JSON 변환 실패: " + e.getMessage(), e);
         }
     }
 
     private List<MixedQuizResDto.QuizWithTerm> parseQuizzesFromJson(String json) {
         try {
-            return objectMapper.readValue(
+            log.debug("JSON 파싱 시도: json={}", json);
+            List<MixedQuizResDto.QuizWithTerm> result = objectMapper.readValue(
                     json,
                     objectMapper.getTypeFactory().constructCollectionType(
                             List.class,
                             MixedQuizResDto.QuizWithTerm.class
                     )
             );
+            log.debug("JSON 파싱 성공: size={}", result.size());
+            return result;
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("JSON 파싱 실패", e);
+            log.error("JSON 파싱 실패 - json 내용: {}", json, e);
+            log.error("에러 상세: {}", e.getMessage());
+            throw new RuntimeException("JSON 파싱 실패: " + e.getMessage(), e);
         }
     }
 

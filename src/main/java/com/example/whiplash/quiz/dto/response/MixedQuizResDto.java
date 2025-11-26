@@ -2,6 +2,7 @@ package com.example.whiplash.quiz.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +26,7 @@ public class MixedQuizResDto {
      */
     @Data
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class QuizWithTerm {
         private String question;
         private List<String> options;
