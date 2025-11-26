@@ -1,6 +1,8 @@
 package com.example.whiplash.article.original.web.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
+import com.example.whiplash.apiPayload.ErrorStatus;
+import com.example.whiplash.apiPayload.exception.WhiplashException;
 import com.example.whiplash.article.original.domain.document.SummaryStatus;
 import com.example.whiplash.article.original.service.ArticleQueryService;
 import com.example.whiplash.article.original.web.dto.response.ArticleListItemResponse;
@@ -74,10 +76,10 @@ public class ArticleLoadController {
 
 	@GetMapping("/recently-viewed")
 	public ResponseEntity<ApiResponse<List<RecentlyViewedArticleResponse>>> getRecentlyViewedArticles(
-		@AuthenticationPrincipal UserPrincipal principal,
 		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
 
-		Long userId = principal.getUserId();
+		Long userId = SecurityContextUtils.getCurrentUserId()
+			.orElseThrow(() -> new WhiplashException(ErrorStatus.UNAUTHORIZED));
 
 		List<RecentlyViewedArticleResponse> articles = articleQueryService.getRecentlyViewedArticles(userId, date);
 
