@@ -79,17 +79,19 @@ public class AuthService {
 
         userRepository.save(kakaoUser);
 
+        return loginByKakao(kakaoUser);
+
         // 회원가입의 경우 임시토큰 생성
-        String tempToken = jwtTokenProvider.generateTempSocialToken(kakaoUser);
-        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING, LoginStatus.NEW_USER, kakaoUser.getName());
+//        String tempToken = jwtTokenProvider.generateTempSocialToken(kakaoUser);
+//        return AuthConverter.toTokenResponseDTO(tempToken, null, UserStatus.PENDING, LoginStatus.NEW_USER, kakaoUser.getName());
     }
 
     @Transactional
     public TokenResponseDTO loginByKakao(User user) {
 
-        if (user.getUserStatus() == UserStatus.PENDING || user.getUserStatus() == UserStatus.INACTIVE) {
-            throw new WhiplashException(ErrorStatus.USER_NOT_ACTIVATED);
-        }
+//        if (user.getUserStatus() == UserStatus.PENDING || user.getUserStatus() == UserStatus.INACTIVE) {
+//            throw new WhiplashException(ErrorStatus.USER_NOT_ACTIVATED);
+//        }
 
         // 모든 사용자 타입에 대해 user.getId()를 사용
         String userId = String.valueOf(user.getId());
