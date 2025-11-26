@@ -6,13 +6,17 @@ import com.example.whiplash.user.domain.profile.InvestmentGoal;
 import com.example.whiplash.user.domain.profile.InvestmentLevel;
 import com.example.whiplash.user.domain.profile.RiskTolerance;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Builder
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProfileRegisterDTO {
     @NotNull(message = "연령대는 필수입니다")
     private AgeRange ageRange;

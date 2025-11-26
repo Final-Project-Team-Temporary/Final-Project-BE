@@ -2,6 +2,7 @@ package com.example.whiplash.auth.controller;
 
 import com.example.whiplash.apiPayload.ApiResponse;
 import com.example.whiplash.auth.service.AuthService;
+import com.example.whiplash.config.security.UserPrincipal;
 import com.example.whiplash.user.web.dto.request.LoginRequestDTO;
 import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
 import com.example.whiplash.user.web.dto.request.TokenRefreshRequestDTO;
@@ -9,6 +10,8 @@ import com.example.whiplash.user.web.dto.response.TokenResponseDTO;
 import com.example.whiplash.user.web.dto.request.UserCreateDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -60,9 +64,9 @@ public class AuthController {
     }
 
     @PostMapping("/complete-registration")
-    public ApiResponse<?> completeRegistration(@AuthenticationPrincipal User user,
+    public ApiResponse<?> completeRegistration(@AuthenticationPrincipal UserPrincipal userPrincipal,
         @Valid @RequestBody ProfileRegisterDTO request) {
 
-        return ApiResponse.onSuccess(authService.completeRegistration(user.getUsername(), request));
+        return ApiResponse.onSuccess(authService.completeRegistration(userPrincipal.getUsername(), request));
     }
 }
