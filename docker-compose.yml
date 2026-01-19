@@ -6,18 +6,12 @@ services:
       dockerfile: Dockerfile
     image: "${DOCKERHUB_USERNAME}/econoeasy-be:${IMAGE_TAG}"
     container_name: econoeasy-be
+    restart: always
     # 변수 범위: docker-compose파일
     env_file:
       - ./.env
-    depends_on:
-      mysql:
-        condition: service_healthy
-      mongo:
-        condition: service_healthy
     ports:
       - "8080:8080"
-    networks:
-      - backend-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
