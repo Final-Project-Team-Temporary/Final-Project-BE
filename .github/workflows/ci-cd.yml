@@ -1,8 +1,11 @@
-name: CI-CD Pipeline (ECS + ECR)
+# ⚠️ DEPRECATED: This workflow is disabled. Use ec2-deploy.yml instead.
+# This workflow was used for ECS deployment and is kept for reference only.
+
+name: CI-CD Pipeline (DEPRECATED - ECS + ECR)
 
 on:
   push:
-    branches: [ temp ]
+    branches: [ temp-disabled ]  # Changed to never match
     paths-ignore:
       - '.github/workflows/**'   # 워크플로우 수정만 있을 때는 빌드 스킵
       - 'README.md'
@@ -62,7 +65,8 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
+    # DISABLED: This workflow is deprecated. Use ec2-deploy.yml instead.
+    if: false  # Always skip this job
 
     steps:
       - name: Decode and export env vars

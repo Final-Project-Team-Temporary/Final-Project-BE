@@ -1,10 +1,14 @@
-name: cd.yml
+# ⚠️ DEPRECATED: This workflow is disabled. Use ec2-deploy.yml instead.
+# This workflow was used for ECS deployment and is kept for reference only.
+
+name: cd.yml (DEPRECATED - ECS)
 
 on:
+  # Disabled: changed branch condition to never match
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'ECR image tag to deploy (e.g. latest or a commit SHA)'
+        description: '[DEPRECATED] ECR image tag to deploy (e.g. latest or a commit SHA)'
         required: false
         default: latest
   workflow_run:
@@ -15,7 +19,8 @@ jobs:
   # 2. ECS 서비스 업데이트 (무중단 배포)
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
+    # DISABLED: This workflow is deprecated. Use ec2-deploy.yml instead.
+    if: false  # Always skip this job
 
     steps:
       - name: Decode and export env vars

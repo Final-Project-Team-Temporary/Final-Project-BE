@@ -15,7 +15,7 @@ services:
       mongo:
         condition: service_healthy
     ports:
-      - "8082:8080"
+      - "8080:8080"
     networks:
       - backend-net
     healthcheck:
@@ -25,63 +25,63 @@ services:
     # 변수 범위: 컨테이너 내부 어플리케이션
 #    environment:
 
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
-    restart: unless-stopped
-    # .env 파일로부터 RDB 계정 정보를 주입
-    env_file:
-      - ./.env
-    ports:
-      - "3307:${SPRING_DATASOURCE_PORT}"
-    # mysql을 컨테이너로 실행하는거기에, 초기 비번, database를 여기서 설정해야함
-    environment:
-      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      MYSQL_DATABASE: ${SPRING_DATASOURCE_DATABASE}
-#      MYSQL_USER: ${RDB_USERNAME}
-#      MYSQL_PASSWORD: ${RDB_PASSWORD}
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - backend-net
-    healthcheck:
-      # 아래 명령어를 모두 날림
-      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u${SPRING_DATASOURCE_USERNAME} -p${SPRING_DATASOURCE_PASSWORD}" ]
-      interval: 30s
-      retries: 5
+#  mysql:
+#    image: mysql:8.0
+#    container_name: mysql
+#    restart: unless-stopped
+#    # .env 파일로부터 RDB 계정 정보를 주입
+#    env_file:
+#      - ./.env
+#    ports:
+#      - "3306:${SPRING_DATASOURCE_PORT}"
+#    # mysql을 컨테이너로 실행하는거기에, 초기 비번, database를 여기서 설정해야함
+#    environment:
+#      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+#      MYSQL_DATABASE: ${SPRING_DATASOURCE_DATABASE}
+##      MYSQL_USER: ${RDB_USERNAME}
+##      MYSQL_PASSWORD: ${RDB_PASSWORD}
+#    volumes:
+#      - mysql_data:/var/lib/mysql
+#    networks:
+#      - backend-net
+#    healthcheck:
+#      # 아래 명령어를 모두 날림
+#      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u${SPRING_DATASOURCE_USERNAME} -p${SPRING_DATASOURCE_PASSWORD}" ]
+#      interval: 30s
+#      retries: 5
 
-  mongo:
-    image: mongo:6.0
-    container_name: mongo
-    restart: unless-stopped
-    #실제포트:컨테이너포트
-    env_file:
-      - ./.env
-    ports:
-      - "27018:${SPRING_DATA_MONGODB_PORT}"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${SPRING_DATA_MONGODB_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${SPRING_DATA_MONGODB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${SPRING_DATA_MONGODB_DATABASE}
-    volumes:
-      - mongo_data:/data/db
-    networks:
-      - backend-net
-    healthcheck:
-      test: [
-        "CMD",
-        "mongosh",
-        "--quiet",
-        "--eval",
-        "db.adminCommand('ping').ok",
-        "-u",
-        "root",
-        "-p",
-        "1111"
-      ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+#  mongo:
+#    image: mongo:6.0
+#    container_name: mongo
+#    restart: unless-stopped
+#    #실제포트:컨테이너포트
+#    env_file:
+#      - ./.env
+#    ports:
+#      - "27018:${SPRING_DATA_MONGODB_PORT}"
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: ${SPRING_DATA_MONGODB_USERNAME}
+#      MONGO_INITDB_ROOT_PASSWORD: ${SPRING_DATA_MONGODB_PASSWORD}
+#      MONGO_INITDB_DATABASE: ${SPRING_DATA_MONGODB_DATABASE}
+#    volumes:
+#      - mongo_data:/data/db
+#    networks:
+#      - backend-net
+#    healthcheck:
+#      test: [
+#        "CMD",
+#        "mongosh",
+#        "--quiet",
+#        "--eval",
+#        "db.adminCommand('ping').ok",
+#        "-u",
+#        "root",
+#        "-p",
+#        "1111"
+#      ]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
 # cmd에서 몽고디비 헬스체크: mongosh --quiet --eval "db.adminCommand(\"ping\").ok" -u root -p 1111 || exit 1
 
 volumes:
