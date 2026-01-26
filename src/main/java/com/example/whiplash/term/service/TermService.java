@@ -68,23 +68,22 @@ public class TermService {
         userTermsRepository.save(userTerms);
 
         // 비동기 퀴즈 생성 요청
-        quizPreGenerationService.generateQuizAsync(userId, dicTerm.getTermName());
+//        quizPreGenerationService.generateQuizAsync(userId, dicTerm.getTermName());
     }
 
     /**
      * 용어 목록 조회
      */
-    public List<DictionaryTermListResDto> getTerms(Long userId) {
+    public Page<DictionaryTermListResDto> getTerms(Long userId, Pageable pageable) {
 
-        List<UserTerms> dicTermList = userTermsRepository.findByUserId(userId);
+        Page<UserTerms> dicTermPage = userTermsRepository.findByUserId(userId, pageable);
 
-        return dicTermList.stream()
-                .map(dicTerm -> DictionaryTermListResDto.builder()
-                        .userTermId(dicTerm.getId())
-                        .termDescription(dicTerm.getTerms().getAiExplanation())
-                        .termName(dicTerm.getTerms().getTermName())
-                        .createdAt(dicTerm.getTerms().getCreatedAt())
-                        .build()).toList();
+        return dicTermPage.map(dicTerm -> DictionaryTermListResDto.builder()
+                .userTermId(dicTerm.getId())
+                .termDescription(dicTerm.getTerms().getAiExplanation())
+                .termName(dicTerm.getTerms().getTermName())
+                .createdAt(dicTerm.getTerms().getCreatedAt())
+                .build());
     }
 
     /**
@@ -93,11 +92,13 @@ public class TermService {
     public TermExplainResDto getTermExplanation(String term) {
         Optional<Terms> findTerm = termsRepository.findByTermName(term);
 
+        // 기존에 누군가가 AI설명을 요청한 이력이 있다면 -> 바로 응답
         if (findTerm.isPresent()) {
             Terms terms = findTerm.get();
             return new TermExplainResDto(terms.getTermName(), terms.getAiExplanation());
         }
 
+        // 없으면 서버 요청!
         return aiServerClient.getTermExplain(term);
     }
 

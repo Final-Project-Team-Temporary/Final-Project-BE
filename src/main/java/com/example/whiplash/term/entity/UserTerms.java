@@ -14,7 +14,9 @@ import lombok.*;
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_user_terms",
                 columnNames = {"user_id", "terms_id"}
-        ))
+        ),
+        indexes = @Index(name = "idx_user_terms_user_id", columnList = "user_id")
+)
 public class UserTerms extends BaseEntity {
 
     @Id

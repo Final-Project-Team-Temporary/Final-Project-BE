@@ -14,7 +14,10 @@ import java.util.List;
 
 public interface UserTermsRepository extends JpaRepository<UserTerms, Long> {
 
-    @Query("select ut from UserTerms ut join fetch ut.terms t where ut.user.id = :userId")
+    @Query(value = "select ut from UserTerms ut join fetch ut.terms t where ut.user.id = :userId",
+           countQuery = "select count(ut) from UserTerms ut where ut.user.id = :userId")
+    Page<UserTerms> findByUserId(Long userId, Pageable pageable);
+
     List<UserTerms> findByUserId(Long userId);
 
     // 중복 체크용
@@ -36,10 +39,12 @@ public interface UserTermsRepository extends JpaRepository<UserTerms, Long> {
      * ⭐ 용어명 부분 검색 (LIKE '%keyword%')
      * 예: "금" 검색 → "금리", "금융", "환금성"
      */
-    @Query("SELECT ut FROM UserTerms ut " +
+    @Query(value = "SELECT ut.* FROM UserTerms ut " +
+            "INNER JOIN terms t ON ut.terms.id = t.id" +
             "WHERE ut.user.id = :userId " +
-            "AND LOWER(ut.terms.termName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-            "ORDER BY ut.createdAt DESC")
+            "AND MATCH(t.term_name) AGANIST (:keyword IN BOOLEAN MODE) " +
+            "ORDER BY ut.createdAt DESC",
+    nativeQuery = true)
     Page<UserTerms> searchByTermContaining(
             @Param("userId") Long userId,
             @Param("keyword") String keyword,
@@ -65,7 +70,7 @@ public interface UserTermsRepository extends JpaRepository<UserTerms, Long> {
      */
     @Query("SELECT DISTINCT ut.terms.termName FROM UserTerms ut " +
             "WHERE ut.user.id = :userId " +
-            "AND LOWER(ut.terms.termName) LIKE LOWER(CONCAT(:keyword, '%')) " +
+            "AND LOWER(ut.terms.termName) LIKE CONCAT(:keyword, '%') " +
             "ORDER BY ut.terms.termName ASC")
     List<String> findTermSuggestions(
             @Param("userId") Long userId,

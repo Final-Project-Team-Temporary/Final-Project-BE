@@ -29,12 +29,6 @@ public class TermsController {
 
     private final TermService termService;
 
-    @PostMapping("/explain")
-    @Operation(summary = "용어 AI 설명요청", description = "용어에 대한 AI 설명을 요청한다.")
-    public ApiResponse<?> getTermsExplain() {
-        return null;
-    }
-
     @PostMapping("")
     @Operation(summary = "용어 저장", description = "용어를 나의 용어사전에 저장합니다.")
     public ApiResponse<?> addTerms(@RequestBody TermAddDto termAddDto, @AuthenticationPrincipal UserPrincipal principal) {
@@ -48,11 +42,14 @@ public class TermsController {
 
     @GetMapping("")
     @Operation(summary = "용어 리스트 조회", description = "나의 용어사전에 저장된 용어 목록을 조회합니다.")
-    public ApiResponse<?> getTerms(@AuthenticationPrincipal UserPrincipal principal) {
+    public ApiResponse<?> getTerms(@AuthenticationPrincipal UserPrincipal principal,
+                                   @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
 
         Long userId = principal.getUserId();
 
-        List<DictionaryTermListResDto> dicTermListResDto = termService.getTerms(userId);
+        Pageable pageRequest = PageRequest.of(page, size);
+
+        Page<DictionaryTermListResDto> dicTermListResDto = termService.getTerms(userId, pageRequest);
 
         return ApiResponse.onSuccess(dicTermListResDto);
     }
