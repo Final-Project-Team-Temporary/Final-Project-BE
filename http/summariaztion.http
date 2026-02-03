@@ -4,19 +4,161 @@ Content-Type: application/json
 
 {
   "articleIds": [
-    "68f3573a6313854f303cbf76",
-    "68f3573a6313854f303cbf7b",
-    "68f3573a6313854f303cbf7a",
-    "68f3573a6313854f303cbf79",
-    "68f3573a6313854f303cbf78",
-    "68f3573a6313854f303cbf77",
-    "68f32d0a339aa75e7f6ea8a0",
-    "68f32d0a339aa75e7f6ea8a2",
-    "68f32d0a339aa75e7f6ea8a1"
-  ],
-  "timestamp": "2025-10-18T23:50:00"
+    "690eef2c19493dfd91815ac4",
+    "690eef2c19493dfd91815ac5",
+    "690eda158b4b6a13178f88c1",
+    "690eda168b4b6a13178f88c3",
+    "690eda168b4b6a13178f88c2"
+
+  ]
+,
+  "timestamp": "2025-10-30T23:50:00"
 }
 
 
 ### health check
-GET api.econoeasy.xyz/health
+GET https://api.econoeasy.xyz/health
+
+### 로그인 (AccessToken 자동 저장)
+POST http://api.econoeasy.xyz/api/login
+Content-Type: application/json
+
+{
+  "email": "rmsghchl0@gmail.com",
+  "password": "1111"
+}
+
+> {%
+    client.test("로그인 성공", function() {
+        client.assert(response.status === 200, "응답 상태가 200이어야 합니다");
+    });
+
+    // accessToken을 전역 변수로 저장
+    if (response.body.data && response.body.data.accessToken) {
+        client.global.set("accessToken", response.body.data.accessToken);
+        console.log("AccessToken이 환경변수에 저장되었습니다:", response.body.data.accessToken);
+    }
+%}
+
+
+
+
+
+
+
+
+
+### 로컬 테스트
+POST http://localhost:8080/api/articles/summarization/request
+Content-Type: application/json
+
+{
+    "articleIds":[
+      "68d164b80c7d43f45ae3ef39"
+
+    ],
+  "timestamp": "2025-10-19T20:00:00"
+}
+
+### 로그인 (AccessToken 자동 저장)
+POST http://localhost:8080/api/login
+Content-Type: application/json
+
+{
+  "email": "rmsghchl0@gmail.com",
+  "password": "1111"
+}
+
+> {%
+    client.test("로그인 성공", function() {
+        client.assert(response.status === 200, "응답 상태가 200이어야 합니다");
+    });
+
+    // accessToken을 전역 변수로 저장
+    if (response.body.data && response.body.data.accessToken) {
+        client.global.set("accessToken", response.body.data.accessToken);
+        console.log("AccessToken이 환경변수에 저장되었습니다:", response.body.data.accessToken);
+    }
+%}
+
+
+### 유튜브 영상 추천 (인증 필요)
+GET https://api.econoeasy.xyz/api/recommends/videos/youtube
+
+### 유튜브 영상 추천 - 로컬
+GET http://localhost:8080/api/recommends/videos/youtube
+## Authorization: {{accessToken}}
+###
+GET https://api.econoeasy.xyz/health
+###
+GET http://localhost:8080/api/recommends/articles
+Authorization: Bearer {{accessToken}}
+
+###
+GET http://localhost:8080/health
+
+###
+GET localhost:8080/api/articles/summarized
+
+###
+GET localhost:8080/api/learning/streak
+Authorization: Bearer {{accessToken}}
+
+###
+POST localhost:8080/api/quiz/results
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "results": [
+    {
+      "question": "국내 시중은행의 주요 기능으로 가장 적절한 것은 무엇인가요?",
+      "options": [
+        "국가 통화 발행 및 관리",
+        "정부의 외환보유액 운용",
+        "일반 개인 및 기업에 예금 수취 및 대출 제공",
+        "기준금리 결정 및 발표"
+      ],
+      "answerIndex": 2,
+      "userAnswerIndex": 2,
+      "explanation": "시중은행은 일반 대중으로부터 예금을 받아 자금을 조달하고, 이를 다시 개인이나 기업에 대출해주는 것이 핵심 기능입니다. 통화 발행 및 기준금리 결정은 중앙은행의 역할입니다.",
+      "term": "기타"
+    },
+    {
+      "question": "한국은행이 기준금리를 인상했을 때, 국내 시중은행들이 일반적으로 취하는 조치로 가장 거리가 먼 것은 무엇인가요?",
+      "options": [
+        "예금 금리 인상",
+        "대출 금리 인상",
+        "가계 및 기업 대출 심사 강화",
+        "통화량 증대를 위한 신규 대출 확대"
+      ],
+      "answerIndex": 3,
+      "userAnswerIndex": 3,
+      "explanation": "기준금리 인상은 시중 유동성을 흡수하고 물가 안정을 도모하는 목적이 있습니다. 따라서 시중은행은 예금 및 대출 금리를 인상하고 대출 심사를 강화하여 통화량 증가를 억제하는 방향으로 움직입니다. 신규 대출 확대는 기준금리 인상 목적과 상반됩니다.",
+      "term": "기타"
+    },
+    {
+      "question": "다음 중 국내 시중은행에 대한 설명으로 옳지 않은 것은 무엇인가요?",
+      "options": [
+        "금융소비자 보호를 위해 금융감독원의 감독을 받는다.",
+        "주로 영리 추구를 목적으로 다양한 금융 서비스를 제공한다.",
+        "최종 대부자(Lender of Last Resort)로서 금융 시스템 위기 시 유동성을 공급한다.",
+        "디지털 전환 가속화로 모바일 뱅킹 등 비대면 서비스가 강화되고 있다."
+      ],
+      "answerIndex": 2,
+      "userAnswerIndex": 1,
+      "explanation": "최종 대부자(Lender of Last Resort)로서 금융 시스템 위기 시 유동성을 공급하는 역할은 중앙은행인 한국은행의 주요 기능입니다. 시중은행은 이 역할을 수행하지 않습니다.",
+      "term": "기타"
+    }
+  ]
+}
+
+
+###
+GET localhost:8080/api/articles/recently-viewed?date=2025-11-26
+Authorization: Bearer {{accessToken}}
+
+
+###
+GET api.econoeasy.xyz/api/articles/recently-viewed?date=2025-11-27
+Authorization: Bearer {{accessToken}}
