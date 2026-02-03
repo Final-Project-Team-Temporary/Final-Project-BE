@@ -1,0 +1,55 @@
+spring:
+  datasource:
+    url: ${RDB_URL}
+    username: ${RDB_USERNAME}
+    password: ${RDB_PASSWORD}
+    driver-class-name: ${RDB_DRIVER_CLASS_NAME}
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+    #        default_batch_fetch_size: 100
+    show-sql: true
+
+  data:
+    mongodb:
+      host: ${NOSQL_HOST}
+      port: ${NOSQL_PORT}
+      database: ${NOSQL_DATABASE}
+      username: ${NOSQL_USERNAME}
+      password: ${NOSQL_PASSWORD}
+      authentication-database: ${NOSQL_AUTHENTICATION_DATABASE}
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+
+  mail:
+    host: ${GMAIL_HOST}
+    port: ${GMAIL_PORT}
+    username: ${GMAIL_USERNAME}
+    password: ${GMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION}
+  issuer: ${JWT_ISSUER}
+
+kakao:
+  client-id: ${KAKAO_CLIENT_ID}
+  redirect-uri: ${KAKAO_REDIRECT_URI}
+
+redis:
+  key:
+    stream-key: ${REDIS_STREAM_KEY}
+    dedup-key: ${REDIS_DEDUP_KEY}

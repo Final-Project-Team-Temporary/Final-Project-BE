@@ -1,0 +1,9 @@
+{
+  "ageRange": "THIRTIES",
+  "investmentLevel": "BEGINNER",
+  "riskTolerance": "MODERATE",
+  "investmentGoal": "LONG_TERM_GROWTH",
+  "interestCategories": [
+    "STEEL"
+  ]
+}

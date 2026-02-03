@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Edit(*/demo/**/*)",
+      "Write(*/demo/**/*)",
+      "Read(*/demo/**/*)",
+      "Bash(*/demo/**/*)",
+      "Bash(./gradlew*)",
+      "Bash(gradlew*)",
+      "MultiEdit(*/demo/**/*)",
+      "LS(*/demo/**/*)",
+      "Glob(*/demo/**/*)",
+      "Grep(*/demo/**/*)",
+      "TodoWrite(*)",
+      "NotebookEdit(*/demo/**/*)",
+      "NotebookRead(*/demo/**/*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "Task(*)",
+      "ExitPlanMode(*)",
+      "mcp__task-master-ai__*:*"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/gno_root/Desktop/open_the_door/lets_developing/project/whiplash/be/.claude/hooks/stop-automation.sh",
+            "timeout": 30000
+          }
+        ]
+      }
+    ]
+  }
+}
+
+
+
