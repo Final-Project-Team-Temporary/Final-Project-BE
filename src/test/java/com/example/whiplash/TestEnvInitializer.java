@@ -17,12 +17,17 @@ public class TestEnvInitializer implements ApplicationContextInitializer<Configu
         }
     }
     public void loadEnv() throws IOException {
-        Properties props = new Properties();
-        try (FileInputStream fis = new FileInputStream(".env.test")) {
-            props.load(fis);
+        String[] candidates = {".env.test", ".env"};
+        for (String filename : candidates) {
+            java.io.File file = new java.io.File(filename);
+            if (file.exists()) {
+                Properties props = new Properties();
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    props.load(fis);
+                }
+                props.forEach((key, value) -> System.setProperty(key.toString(), value.toString()));
+                return;
+            }
         }
-        props.forEach((key, value) -> {
-            System.setProperty(key.toString(), value.toString());
-        });
     }
 }

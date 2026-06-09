@@ -67,8 +67,8 @@ public class TermService {
 
         userTermsRepository.save(userTerms);
 
-        // 비동기 퀴즈 생성 요청
-//        quizPreGenerationService.generateQuizAsync(userId, dicTerm.getTermName());
+        // 비동기 퀴즈 풀 생성 (MongoDB에 풀이 없을 때만 AI 호출)
+        quizPreGenerationService.generateQuizAsync(dicTerm.getTermName());
     }
 
     /**

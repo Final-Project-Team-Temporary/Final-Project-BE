@@ -1,24 +1,26 @@
 package com.example.whiplash.quiz.service;
 
-import com.example.whiplash.quiz.client.AiServerClient;
-import com.example.whiplash.quiz.dto.response.QuizResDto;
-import com.example.whiplash.term.entity.UserTerms;
+import com.example.whiplash.quiz.constant.QuizCacheConstants;
+import com.example.whiplash.quiz.repository.TermQuizPoolRepository;
 import com.example.whiplash.term.repository.UserTermsRepository;
-import com.example.whiplash.user.domain.User;
 import com.example.whiplash.user.repository.user.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
@@ -27,174 +29,124 @@ public class QuizBatchService {
 
     private final UserRepository userRepository;
     private final UserTermsRepository userTermsRepository;
-    private final AiServerClient aiServerClient;
+    private final TermQuizPoolRepository termQuizPoolRepository;
+    private final TermQuizPoolService termQuizPoolService;
     private final RedisTemplate<String, Object> redisTemplate;
+
+    @Qualifier("quizTaskExecutor")
+    private final Executor quizTaskExecutor;
 
     @Value("${quiz.batch.active-days-threshold:30}")
     private int activeDaysThreshold;
 
-    @Value("${quiz.batch.max-terms-per-user:10}")
-    private int maxTermsPerUser;
-
-    private static final String CACHE_KEY_PREFIX = "quiz:single:";
-    private static final Duration CACHE_TTL = Duration.ofDays(7);
+    @Value("${quiz.batch.max-terms-per-batch:50}")
+    private int maxTermsPerBatch;
 
     /**
-     * 모든 활성 사용자에 대해 퀴즈 미리 생성
+     * 고유 용어 단위로 퀴즈 풀을 생성한다.
+     *
+     * 풀이 없는 용어들을 quizTaskExecutor 에서 병렬 처리하되,
+     * Semaphore 로 AI 서버 동시 호출 수를 제한한다 (기본 5개).
      */
     @Transactional(readOnly = true)
-    public void generateQuizzesForAllActiveUsers() {
+    public void generateQuizzesForAllTerms() {
         long startTime = System.currentTimeMillis();
-        log.info("=== 퀴즈 배치 생성 시작 ===");
+        log.info("=== 퀴즈 배치 생성 시작 (용어 단위) ===");
 
-        // 1. 활성 사용자 조회
-        LocalDateTime activeThreshold = LocalDateTime.now().minusDays(activeDaysThreshold);
-        List<User> activeUsers = userRepository.findActiveUsersSince(activeThreshold);
+        // 1. 전체 사용자에 걸쳐 고유 termName 수집
+        List<String> allDistinctTerms = userTermsRepository.findDistinctTermNames();
+        log.info("전체 고유 용어 수: {}", allDistinctTerms.size());
 
-        log.info("활성 사용자 수: {}", activeUsers.size());
-
-        if (activeUsers.isEmpty()) {
-            log.info("활성 사용자가 없습니다.");
+        if (allDistinctTerms.isEmpty()) {
+            log.info("처리할 용어 없음.");
             return;
         }
 
-        // 2. 각 사용자별 퀴즈 생성
-        int totalGenerated = 0;
-        int successCount = 0;
-        int failCount = 0;
+        // 2. MongoDB 풀이 없는 용어만 필터링 — 읽기는 트랜잭션 안에서 처리
+        List<String> termsWithoutPool = allDistinctTerms.stream()
+                .filter(term -> !termQuizPoolRepository.existsByTermName(term))
+                .limit(maxTermsPerBatch)
+                .toList();
 
-        for (User user : activeUsers) {
-            try {
-                int generated = generateQuizzesForUser(user);
-                totalGenerated += generated;
-                successCount++;
+        log.info("풀 미생성 용어 수: {} / 전체 {}", termsWithoutPool.size(), allDistinctTerms.size());
 
-                log.info("사용자 퀴즈 생성 완료: userId={}, generated={}",
-                        user.getId(), generated);
-
-            } catch (Exception e) {
-                failCount++;
-                log.error("사용자 퀴즈 생성 실패: userId={}", user.getId(), e);
-            }
+        if (termsWithoutPool.isEmpty()) {
+            log.info("모든 용어에 퀴즈 풀 존재. 배치 종료.");
+            return;
         }
 
-        long elapsedTime = System.currentTimeMillis() - startTime;
+        // 3. 병렬 생성 — Semaphore 로 AI 서버 동시 호출 수 제한
+        AtomicInteger successCount = new AtomicInteger();
+        AtomicInteger failCount = new AtomicInteger();
+        // quizTaskExecutor core-pool-size(기본 5)와 맞춰 동시 AI 호출도 5개로 제한
+        Semaphore semaphore = new Semaphore(5);
 
-        log.info("=== 퀴즈 배치 생성 완료 ===");
-        log.info("처리 사용자: {}, 성공: {}, 실패: {}",
-                activeUsers.size(), successCount, failCount);
-        log.info("생성된 퀴즈 총 개수: {}", totalGenerated);
-        log.info("소요 시간: {}ms", elapsedTime);
-    }
+        List<CompletableFuture<Void>> futures = new ArrayList<>(termsWithoutPool.size());
 
-    /**
-     * 특정 사용자에 대해 퀴즈 생성
-     */
-    private int generateQuizzesForUser(User user) {
-        Long userId = user.getId();
+        for (String term : termsWithoutPool) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                try {
+                    semaphore.acquire();
+                    try {
+                        String cacheKey = QuizCacheConstants.poolKey(term);
+                        termQuizPoolService.generateAndPersist(term, cacheKey);
+                        successCount.incrementAndGet();
+                        log.debug("풀 생성 완료: term={}", term);
+                    } finally {
+                        semaphore.release();
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.error("배치 스레드 인터럽트: term={}", term);
+                } catch (Exception e) {
+                    failCount.incrementAndGet();
+                    log.error("풀 생성 실패: term={}", term, e);
+                }
+            }, quizTaskExecutor);
 
-        // 1. 사용자가 저장한 모든 용어 조회
-        List<UserTerms> userTermsList = userTermsRepository.findByUserId(userId);
-
-        if (userTermsList.isEmpty()) {
-            log.debug("저장된 용어 없음: userId={}", userId);
-            return 0;
+            futures.add(future);
         }
 
-        // 2. 캐시 없는 용어만 필터링
-        List<String> termsWithoutCache = userTermsList.stream()
-                .map(ut -> ut.getTerms().getTermName())
-                .filter(term -> !hasCache(userId, term))
-                .limit(maxTermsPerUser)  // 최대 개수 제한
-                .collect(Collectors.toList());
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-        if (termsWithoutCache.isEmpty()) {
-            log.debug("모든 용어에 캐시 존재: userId={}", userId);
-            return 0;
-        }
-
-        log.info("퀴즈 생성 시작: userId={}, terms={}", userId, termsWithoutCache);
-
-        // 3. 각 용어별 퀴즈 생성 및 캐싱
-        int generatedCount = 0;
-        for (String term : termsWithoutCache) {
-            try {
-                QuizResDto quizResponse = aiServerClient.generateQuiz(term, 3);
-
-                String cacheKey = buildCacheKey(userId, term);
-                redisTemplate.opsForValue().set(cacheKey, quizResponse, CACHE_TTL);
-
-                generatedCount++;
-                log.debug("퀴즈 캐싱 완료: userId={}, term={}", userId, term);
-
-                // AI 서버 부하 방지를 위한 짧은 대기
-                Thread.sleep(100);  // 0.1초
-
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                log.error("퀴즈 생성 중단: userId={}", userId, e);
-                break;
-
-            } catch (Exception e) {
-                log.error("퀴즈 생성 실패: userId={}, term={}", userId, term, e);
-                // 실패해도 다음 용어 계속 처리
-            }
-        }
-
-        return generatedCount;
-    }
-
-    /**
-     * 캐시 존재 여부 확인
-     */
-    private boolean hasCache(Long userId, String term) {
-        String cacheKey = buildCacheKey(userId, term);
-        return redisTemplate.hasKey(cacheKey);
-    }
-
-    /**
-     * 캐시 키 생성
-     */
-    private String buildCacheKey(Long userId, String term) {
-        return CACHE_KEY_PREFIX + userId + ":" + term;
+        long elapsed = System.currentTimeMillis() - startTime;
+        log.info("=== 퀴즈 배치 완료: 성공={}, 실패={}, 소요={}ms ===",
+                successCount.get(), failCount.get(), elapsed);
     }
 
     /**
      * 캐시 통계 조회 (모니터링용)
      */
     public CacheStatistics getCacheStatistics() {
-        // Redis의 모든 퀴즈 키 조회
-        var keys = redisTemplate.keys(CACHE_KEY_PREFIX + "*");
-        int totalCachedQuizzes = keys != null ? keys.size() : 0;
+        long totalTermsInMongo = termQuizPoolRepository.count();
+        long totalDistinctTerms = userTermsRepository.findDistinctTermNames().size();
 
-        // 활성 사용자 수
+        var redisKeys = redisTemplate.keys(QuizCacheConstants.POOL_KEY_PREFIX + "*");
+        int redisHotTerms = redisKeys != null ? redisKeys.size() : 0;
+
         LocalDateTime activeThreshold = LocalDateTime.now().minusDays(activeDaysThreshold);
         long activeUserCount = userRepository.countActiveUsersSince(activeThreshold);
 
-        // 전체 용어 수
-        long totalTerms = userTermsRepository.count();
-
-        double cacheHitRate = totalTerms > 0
-                ? (double) totalCachedQuizzes / totalTerms * 100
+        double coverageRate = totalDistinctTerms > 0
+                ? (double) totalTermsInMongo / totalDistinctTerms * 100
                 : 0;
 
         return new CacheStatistics(
-                totalCachedQuizzes,
+                (int) totalTermsInMongo,
+                redisHotTerms,
                 activeUserCount,
-                totalTerms,
-                cacheHitRate
+                totalDistinctTerms,
+                coverageRate
         );
     }
 
-    /**
-     * 캐시 통계 DTO
-     */
     @Data
     @AllArgsConstructor
     public static class CacheStatistics {
-        private int totalCachedQuizzes;     // 캐시된 퀴즈 총 개수
-        private long activeUserCount;       // 활성 사용자 수
-        private long totalTerms;            // 전체 용어 수
-        private double cacheHitRate;        // 예상 캐시 히트율 (%)
+        private int totalTermsInMongo;
+        private int redisHotTerms;
+        private long activeUserCount;
+        private long totalDistinctTerms;
+        private double coverageRate;
     }
 }

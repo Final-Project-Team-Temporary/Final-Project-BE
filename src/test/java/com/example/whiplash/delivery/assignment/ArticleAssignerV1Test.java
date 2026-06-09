@@ -1,12 +1,13 @@
 package com.example.whiplash.delivery.assignment;
 
 import com.example.whiplash.IntegrationTestSupport;
-import com.example.whiplash.article.domain.document.Category;
-import com.example.whiplash.article.domain.document.SummarizedArticle;
-import com.example.whiplash.article.domain.entity.UserArticleAssignment;
-import com.example.whiplash.article.repository.ArticleRepository;
-import com.example.whiplash.article.repository.SummarizedArticleRepository;
-import com.example.whiplash.article.repository.UserArticleAssignmentRepository;
+
+import com.example.whiplash.article.original.domain.entity.UserArticleAssignment;
+import com.example.whiplash.article.original.repository.ArticleRepository;
+import com.example.whiplash.article.original.repository.UserArticleAssignmentRepository;
+import com.example.whiplash.article.summary.domain.document.Category;
+import com.example.whiplash.article.summary.domain.document.SummarizedArticle;
+import com.example.whiplash.article.summary.repository.SummarizedArticleRepository;
 import com.example.whiplash.auth.service.AuthService;
 import com.example.whiplash.domain.entity.history.email.SummaryLevel;
 import com.example.whiplash.domain.repository.InvestorProfileRepository;
@@ -19,6 +20,7 @@ import com.example.whiplash.user.service.UserService;
 import com.example.whiplash.user.web.dto.UserKeywordCreateRequest;
 import com.example.whiplash.user.web.dto.request.ProfileRegisterDTO;
 import com.example.whiplash.user.web.dto.request.UserCreateDTO;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,6 +51,8 @@ class ArticleAssignerV1Test extends IntegrationTestSupport {
     private InvestorProfileRepository investorProfileRepository;
     @Autowired
     private UserArticleAssignmentRepository userArticleAssignmentRepository;
+    @Autowired
+    private EntityManager em;
 
     private final String userEmail="rmsghchl0@gmail.com";
     @Autowired
@@ -64,15 +68,18 @@ class ArticleAssignerV1Test extends IntegrationTestSupport {
     public void should_hasSize_0_when_condition_mathced_nothing() {
         // given
         User user = saveUser();
-        user.updateSummaryLevel(SummaryLevel.SHORT);
-        registerUserProfile(Optional.of(userEmail), List.of(Category.GOLD));
-        registerKeywords(new UserKeywordCreateRequest("비트코인"));
-        registerKeywords(new UserKeywordCreateRequest("달러"));
+        user.updateSummaryLevel(SummaryLevel.EASY);
+        registerUserProfile(Optional.of(user.getId()), List.of(Category.GOLD));
+        registerKeywords(new UserKeywordCreateRequest("비트코인"), user.getId());
+        registerKeywords(new UserKeywordCreateRequest("달러"), user.getId());
 
         LocalDateTime publishedAt = LocalDateTime.of(2025, 5, 1, 0, 0, 0);
-        SummarizedArticle summary1 = createSummarizedArticle(publishedAt, "하늘이 솟아오르다1", Category.GOLD, SummaryLevel.SHORT);
-        SummarizedArticle summary2 = createSummarizedArticle(publishedAt, "하늘이 솟아오르다2", Category.GOLD, SummaryLevel.SHORT);
+        SummarizedArticle summary1 = createSummarizedArticle(publishedAt, "하늘이 솟아오르다1", Category.GOLD, SummaryLevel.MEDIUM);
+        SummarizedArticle summary2 = createSummarizedArticle(publishedAt, "하늘이 솟아오르다2", Category.GOLD, SummaryLevel.MEDIUM);
         summarizedArticleRepository.saveAll(List.of(summary1, summary2));
+
+        // JPA 변경사항을 DB에 반영 후 쿼리
+        em.flush();
 
         // when
         articleAssignerV1.assign(publishedAt);
@@ -87,15 +94,18 @@ class ArticleAssignerV1Test extends IntegrationTestSupport {
     public void should_hasSize_2_when_condition_matched() {
         // given
         User user = saveUser();
-        user.updateSummaryLevel(SummaryLevel.SHORT);
-        registerUserProfile(Optional.of(userEmail), List.of(Category.GOLD));
-        registerKeywords(new UserKeywordCreateRequest("비트코인"));
-        registerKeywords(new UserKeywordCreateRequest("달러"));
+        user.updateSummaryLevel(SummaryLevel.MEDIUM);
+        registerUserProfile(Optional.of(user.getId()), List.of(Category.GOLD));
+        registerKeywords(new UserKeywordCreateRequest("비트코인"), user.getId());
+        registerKeywords(new UserKeywordCreateRequest("달러"), user.getId());
 
         LocalDateTime publishedAt = LocalDateTime.of(2025, 5, 1, 0, 0, 0);
-        SummarizedArticle summary1 = createSummarizedArticle(publishedAt, "비트코인 하늘이 솟아오르다1", Category.GOLD, SummaryLevel.SHORT);
-        SummarizedArticle summary2 = createSummarizedArticle(publishedAt, "달러 하늘이 솟아오르다2", Category.GOLD, SummaryLevel.SHORT);
+        SummarizedArticle summary1 = createSummarizedArticle(publishedAt, "비트코인 하늘이 솟아오르다1", Category.GOLD, SummaryLevel.MEDIUM);
+        SummarizedArticle summary2 = createSummarizedArticle(publishedAt, "달러 하늘이 솟아오르다2", Category.GOLD, SummaryLevel.MEDIUM);
         summarizedArticleRepository.saveAll(List.of(summary1, summary2));
+
+        // JPA 변경사항을 DB에 반영 후 쿼리
+        em.flush();
 
         // when
         List<UserArticleAssignment> summariesToDeliver = articleAssignerV1.assign(publishedAt);
@@ -118,11 +128,11 @@ class ArticleAssignerV1Test extends IntegrationTestSupport {
         return user;
     }
 
-    private void registerKeywords(UserKeywordCreateRequest keywordCreateRequest) {
-        userService.createUserKeyword(keywordCreateRequest, Optional.of(userEmail));
+    private void registerKeywords(UserKeywordCreateRequest keywordCreateRequest, Long userId) {
+        userService.createUserKeyword(keywordCreateRequest, Optional.of(userId));
     }
 
-    private User registerUserProfile(Optional<String> mail, List<Category> interestCategories) {
+    private User registerUserProfile(Optional<Long> userId, List<Category> interestCategories) {
         return userService.registerProfile(
                 ProfileRegisterDTO.builder()
                         .ageRange(AgeRange.TWENTIES)
@@ -130,7 +140,7 @@ class ArticleAssignerV1Test extends IntegrationTestSupport {
                         .riskTolerance(RiskTolerance.AGGRESSIVE)
                         .investmentLevel(InvestmentLevel.BEGINNER)
                         .interestCategories(interestCategories)
-                        .build(), mail
+                        .build(), userId
         );
     }
 

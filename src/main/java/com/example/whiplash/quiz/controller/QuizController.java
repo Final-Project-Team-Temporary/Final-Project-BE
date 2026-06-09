@@ -31,152 +31,82 @@ public class QuizController {
     private final SmartMixService smartMixService;
     private final WeeklyChallengeService weeklyChallengeService;
 
-    /**
-     * 퀴즈 조회 API
-     *
-     * GET /api/quiz?userId=1001&term=ETF
-     * GET /api/quiz?userId=1001  (랜덤)
-     */
     @GetMapping
-    @Operation(summary = "퀴즈 조회 API", description = "사용자를 위해 생성된 퀴즈를 용어로 조회하는 API")
+    @Operation(summary = "퀴즈 조회", description = "용어별 퀴즈 풀에서 랜덤 샘플링하여 반환")
     public ApiResponse<QuizResDto> getQuiz(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(required = false) String term
     ) {
-
         Long userId = principal.getUserId();
-
         log.info("퀴즈 조회 요청: userId={}, term={}", userId, term);
-
-        long startTime = System.currentTimeMillis();
-
-        QuizResDto quizResponse = quizService.getQuiz(userId, term);
-
-        long elapsedTime = System.currentTimeMillis() - startTime;
-        log.info("퀴즈 조회 완료: userId={}, term={}, elapsed={}ms",
-                userId, term, elapsedTime);
-
-        return ApiResponse.onSuccess(quizResponse);
+        return ApiResponse.onSuccess(quizService.getQuiz(userId, term));
     }
 
-    /**
-     * ⭐ 신규 API: 커스텀 모의고사
-     */
     @PostMapping("/mixed")
+    @Operation(summary = "커스텀 모의고사 생성", description = "지정한 용어들의 퀴즈 풀에서 샘플링하여 모의고사 구성")
     public ApiResponse<MixedQuizResDto> createMixedQuiz(
             @AuthenticationPrincipal UserPrincipal principal,
             @Valid @RequestBody MixedQuizReqDto request
     ) {
-
         Long userId = principal.getUserId();
-
-        log.info("커스텀 모의고사 요청: userId={}, request={}", userId, request);
-
-        MixedQuizResDto response = mixedQuizService.createMixedQuiz(userId, request);
-
-        return ApiResponse.onSuccess(response);
+        log.info("커스텀 모의고사 요청: userId={}, terms={}", userId, request.getTerms());
+        return ApiResponse.onSuccess(mixedQuizService.createMixedQuiz(userId, request));
     }
 
-    /**
-     * 스마트 랜덤 모의고사
-     */
     @PostMapping("/smart-mix")
+    @Operation(summary = "스마트 랜덤 모의고사", description = "정답률·학습 이력 기반으로 용어를 선정하여 모의고사 구성")
     public ApiResponse<MixedQuizResDto> createSmartMixQuiz(
             @AuthenticationPrincipal UserPrincipal principal,
             @Valid @RequestBody SmartMixReqDto request
     ) {
-
         Long userId = principal.getUserId();
-
-        log.info("스마트 랜덤 모의고사 요청: userId={}, totalQuestions={}",
-                userId, request.getTotalQuestions());
-
-        MixedQuizResDto response = smartMixService.createSmartMixQuiz(userId, request);
-
-        return ApiResponse.onSuccess(response);
+        log.info("스마트 모의고사 요청: userId={}, totalQuestions={}", userId, request.getTotalQuestions());
+        return ApiResponse.onSuccess(smartMixService.createSmartMixQuiz(userId, request));
     }
 
-    /**
-     * ⭐ 주간 챌린지 조회
-     */
     @GetMapping("/weekly-challenge")
+    @Operation(summary = "주간 챌린지 조회")
     public ApiResponse<WeeklyChallengeResDto> getWeeklyChallenge(
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-
         Long userId = principal.getUserId();
-
-        log.info("주간 챌린지 조회 요청: userId={}", userId);
-
-        WeeklyChallengeResDto response = weeklyChallengeService.getWeeklyChallenge(userId);
-
-        return ApiResponse.onSuccess(response);
+        return ApiResponse.onSuccess(weeklyChallengeService.getWeeklyChallenge(userId));
     }
 
-    /**
-     * ⭐ 주간 챌린지 제출
-     */
     @PostMapping("/weekly-challenge/submit")
+    @Operation(summary = "주간 챌린지 제출")
     public ApiResponse<WeeklyChallengeResDto.MyAttemptInfo> submitChallenge(
             @AuthenticationPrincipal UserPrincipal principal,
             @Valid @RequestBody ChallengeSubmitReqDto request
     ) {
-
         Long userId = principal.getUserId();
-
-        log.info("주간 챌린지 제출 요청: userId={}, challengeId={}",
-                userId, request.getChallengeId());
-
-        WeeklyChallengeResDto.MyAttemptInfo result =
-                weeklyChallengeService.submitChallenge(userId, request);
-
-        return ApiResponse.onSuccess(result);
+        return ApiResponse.onSuccess(weeklyChallengeService.submitChallenge(userId, request));
     }
 
-    /**
-     * 기사 기반 퀴즈 조회
-     * <p>
-     * GET /api/quiz/article?articleId=article123&count=5
-     */
     @GetMapping("/article")
-    @Operation(summary = "기사 기반 퀴즈 조회", description = "특정 기사를 기반으로 퀴즈를 생성하여 조회하는 API")
+    @Operation(summary = "기사 기반 퀴즈 조회", description = "특정 기사를 기반으로 퀴즈를 생성하여 반환")
     public ApiResponse<QuizResDto> getArticleQuiz(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam String articleId,
             @RequestParam(defaultValue = "3") @Min(1) @Max(10) Integer count
     ) {
         Long userId = principal.getUserId();
-
-        log.info("기사 기반 퀴즈 조회 요청: userId={}, articleId={}, count={}",
-                userId, articleId, count);
-
-        QuizResDto response = quizService.getArticleQuiz(userId, articleId, count);
-
-        return ApiResponse.onSuccess(response);
+        log.info("기사 퀴즈 요청: userId={}, articleId={}, count={}", userId, articleId, count);
+        return ApiResponse.onSuccess(quizService.getArticleQuiz(userId, articleId, count));
     }
 
     /**
-     * ⭐ 퀴즈 캐시 초기화 (디버깅용)
+     * 특정 용어의 Redis L1 캐시만 삭제 (MongoDB 풀은 유지).
+     * 퀴즈 내용 강제 갱신이 필요할 때 사용.
      */
     @DeleteMapping("/cache")
-    @Operation(summary = "퀴즈 캐시 초기화", description = "사용자의 모든 퀴즈 캐시를 삭제합니다 (역직렬화 오류 해결용)")
+    @Operation(summary = "용어 퀴즈 Redis 캐시 삭제", description = "MongoDB 풀은 유지하고 Redis L1 캐시만 삭제")
     public ApiResponse<String> clearQuizCache(
             @AuthenticationPrincipal UserPrincipal principal,
-            @RequestParam(required = false) String term
+            @RequestParam String term
     ) {
-
-        Long userId = principal.getUserId();
-
-        if (term != null && !term.isBlank()) {
-            // 특정 용어의 캐시만 삭제
-            mixedQuizService.clearTermQuizCache(userId, term);
-            log.info("용어 퀴즈 캐시 삭제: userId={}, term={}", userId, term);
-            return ApiResponse.onSuccess("용어 '" + term + "'의 캐시가 삭제되었습니다.");
-        } else {
-            // 모든 퀴즈 캐시 삭제
-            mixedQuizService.clearUserQuizCache(userId);
-            log.info("모든 퀴즈 캐시 삭제: userId={}", userId);
-            return ApiResponse.onSuccess("모든 퀴즈 캐시가 삭제되었습니다.");
-        }
+        log.info("용어 퀴즈 캐시 삭제 요청: term={}", term);
+        mixedQuizService.clearTermQuizCache(term);
+        return ApiResponse.onSuccess("용어 '" + term + "'의 Redis 캐시가 삭제되었습니다.");
     }
 }

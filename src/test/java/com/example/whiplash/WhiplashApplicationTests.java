@@ -12,10 +12,14 @@ class WhiplashApplicationTests {
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
-		Dotenv env = Dotenv
-				.configure()
+		// .env.test가 없으면 .env로 폴백
+		Dotenv env = Dotenv.configure()
 				.filename(".env.test")
+				.ignoreIfMissing()
 				.load();
+		if (env.entries().isEmpty()) {
+			env = Dotenv.configure().ignoreIfMissing().load();
+		}
 		env.entries().forEach(e -> System.setProperty(e.getKey(), e.getValue()));
 	}
 	@Test

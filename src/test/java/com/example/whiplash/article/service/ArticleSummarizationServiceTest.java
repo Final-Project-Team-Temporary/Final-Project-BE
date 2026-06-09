@@ -1,18 +1,19 @@
 package com.example.whiplash.article.service;
 
 import com.example.whiplash.IntegrationTestSupport;
-import com.example.whiplash.article.domain.document.Article;
-import com.example.whiplash.article.repository.ArticleRepository;
-import com.example.whiplash.article.web.dto.request.ArticleSummarizationRequest;
-import com.example.whiplash.article.web.dto.response.ArticleSummarizationResponse;
-import org.assertj.core.api.Assertions;
+import com.example.whiplash.article.original.domain.document.Article;
+import com.example.whiplash.article.original.domain.document.SummaryStatus;
+import com.example.whiplash.article.original.repository.ArticleRepository;
+import com.example.whiplash.article.summary.service.ArticleSummarizationService;
+import com.example.whiplash.article.summary.service.ArticleTaskProducer;
+import com.example.whiplash.article.summary.web.dto.request.ArticleSummarizationRequest;
+import com.example.whiplash.article.summary.web.dto.response.ArticleSummarizationResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -21,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static com.example.whiplash.article.domain.document.SummaryStatus.BEFORE_ENQUEUED;
+import static com.example.whiplash.article.original.domain.document.SummaryStatus.BEFORE_ENQUEUED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;

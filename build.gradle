@@ -23,6 +23,10 @@ repositories {
 	mavenCentral()
 }
 
+ext {
+	set('springCloudVersion', "2024.0.0") // Spring Boot 3.2.x 기준 (버전에 맞춰 조정 필요)
+}
+
 dependencies {
 	// jpa
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -49,6 +53,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	//validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
 	// spring retry
 	implementation 'org.springframework.retry:spring-retry'
 	implementation 'org.springframework:spring-aspects'
@@ -89,6 +96,12 @@ dependencies {
 	testImplementation "org.testcontainers:mongodb:1.21.3"
 
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
 }
 
 tasks.named('test') {
