@@ -1,14 +1,23 @@
 ---
-description: 기능 추가/개선 작업을 Plan→Work→Verify 루프로 수행
+description: 기능 추가/개선을 TDD(Red→Green→Refactor)로 강제 수행
 ---
 
-다음 요구사항으로 기능 작업을 수행한다: **$ARGUMENTS**
+다음 요구사항으로 기능 작업을 **TDD로** 수행한다: **$ARGUMENTS**
 
-루트 `CLAUDE.md`의 컨벤션과 작업 워크플로우를 준수하며 아래 순서로 진행한다.
+루트 `CLAUDE.md`의 컨벤션과 6장 워크플로우를 준수한다. **테스트를 먼저 작성하지 않고 기능 코드를 작성하지 말 것.** 아래 순서를 반드시 지킨다.
 
-1. **Plan**: 관련 도메인 패키지를 먼저 읽고 영향 범위를 파악한다. 변경/추가할 파일, 필요한 엔드포인트, 새 `ErrorStatus`, DTO(`XxxReqDto`/`XxxResDto`)를 목록으로 제시한다. 요구사항이 모호하면 **구현 전에 질문**한다.
-2. **Work**: 기존 패턴(ApiResponse·WhiplashException·@RequiredArgsConstructor·패키지 바이 피처)을 그대로 따라 최소 변경으로 구현한다.
-3. **Verify**: `./gradlew compileJava`로 컴파일 확인 후, 변경 대상의 테스트를 작성/수정하고 `./gradlew test --tests "..."`로 실행한다. 결과를 있는 그대로 보고한다.
-4. **Report**: 변경 파일 목록, 추가 엔드포인트, 새 `ErrorStatus`, 남은 TODO를 요약한다.
+1. **Plan**: 관련 도메인 패키지를 먼저 읽고 영향 범위를 파악한다. 변경/추가 파일, 엔드포인트, 새 `ErrorStatus`, DTO(`XxxReqDto`/`XxxResDto`)와 함께 **검증할 동작을 테스트 케이스 목록으로** 제시한다. 요구사항이 모호하면 **구현 전에 질문**한다.
+
+2. **🔴 Red**: 위 케이스를 검증하는 테스트를 **먼저** 작성한다(`src/test/.../CLAUDE.md` 규약: 적절한 베이스 클래스, AssertJ, `@DisplayName` 한국어, given/when/then). 그 테스트를 `./gradlew test --tests "..."`로 실행해 **의도한 이유로 실패(또는 컴파일 실패)하는 것을 확인하고 결과를 보고**한다. 이 단계를 건너뛰면 안 된다.
+
+3. **🟢 Green**: 그 테스트를 통과시킬 **최소 구현**을 기존 패턴(ApiResponse·WhiplashException·생성자 주입·패키지 바이 피처)대로 작성한다. 다시 테스트를 실행해 통과를 확인한다.
+
+4. **🔵 Refactor**: 그린을 유지하며 중복·네이밍·구조를 정리하고, 변경 후 테스트를 재실행해 통과를 유지한다.
+
+5. **Report**: 추가한 테스트, 변경 파일, 추가 엔드포인트, 새 `ErrorStatus`, 테스트 실행 결과(있는 그대로), 남은 TODO를 요약한다.
+
+**환경 제약**: 통합/Testcontainers 테스트는 Docker가 필요하다. Docker가 없으면 순수 단위 테스트(`POJOTestSupport`) 수준에서라도 Red→Green을 지키고, 통합 테스트는 작성만 해 두되 "Docker 환경에서 실행 필요"로 명시한다. **테스트 자체를 생략하지 않는다.**
+
+**예외**: 동작이 바뀌지 않는 순수 설정/문서/로그 문구 변경이면 그 사실을 한 줄로 밝히고 TDD 단계를 생략할 수 있다. 애매하면 TDD를 적용한다.
 
 커밋·푸시·PR은 내가 명시적으로 요청하기 전까지 하지 않는다.
