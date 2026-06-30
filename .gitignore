@@ -40,9 +40,12 @@ out/
 .env.test
 .env.*
 
-# claude code
+# claude code (하네스 공유 자산은 추적, 개인/비밀 설정은 무시)
 .claude/**
 !.claude/settings.json
+!.claude/commands/
+!.claude/commands/**
+# .claude/settings.local.json(개인 설정)은 위 .claude/** 규칙으로 계속 무시됨
 
 # Logs
 logs
@@ -74,4 +77,4 @@ tasks.json
 tasks/ 
 .taskmaster/*
 claude-code/*
-**/CLAUDE.md
+# CLAUDE.md는 팀 공유 하네스 컨벤션 파일이므로 추적함 (build/ 내부 생성물은 build/ 규칙으로 이미 제외됨)

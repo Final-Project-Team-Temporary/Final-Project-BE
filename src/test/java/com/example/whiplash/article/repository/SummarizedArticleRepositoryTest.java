@@ -1,8 +1,9 @@
 package com.example.whiplash.article.repository;
 
 import com.example.whiplash.IntegrationTestSupport;
-import com.example.whiplash.article.domain.document.Category;
-import com.example.whiplash.article.domain.document.SummarizedArticle;
+import com.example.whiplash.article.summary.domain.document.Category;
+import com.example.whiplash.article.summary.domain.document.SummarizedArticle;
+import com.example.whiplash.article.summary.repository.SummarizedArticleRepository;
 import com.example.whiplash.domain.entity.history.email.SummaryLevel;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -78,7 +79,7 @@ class SummarizedArticleRepositoryTest extends IntegrationTestSupport {
                 "하늘이 솟아오르다",
                 Category.GOLD,
                 "오늘 하늘이 솟아올랐다는 아주 놀라운 보고가 있다는데요. 맞나요 선생님.",
-                SummaryLevel.SHORT,
+                SummaryLevel.EASY,
                 summarizedAt,
                 publishedAt
         );

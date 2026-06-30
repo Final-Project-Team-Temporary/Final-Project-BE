@@ -18,30 +18,20 @@ public class QuizBatchController {
 
     private final QuizBatchService quizBatchService;
 
-    /**
-     * 수동으로 배치 작업 실행
-     */
     @PostMapping("/run")
     public ResponseEntity<?> runBatchManually() {
         log.info("수동 배치 실행 요청");
-
         try {
-            quizBatchService.generateQuizzesForAllActiveUsers();
+            quizBatchService.generateQuizzesForAllTerms();
             return ResponseEntity.ok(ApiResponse.onSuccess("배치 작업이 완료되었습니다."));
-
         } catch (Exception e) {
             log.error("배치 작업 실패", e);
-            return ResponseEntity.internalServerError()
-                    .body("배치 작업 실패: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("배치 작업 실패: " + e.getMessage());
         }
     }
 
-    /**
-     * 캐시 통계 조회
-     */
     @GetMapping("/statistics")
     public ResponseEntity<QuizBatchService.CacheStatistics> getStatistics() {
-        QuizBatchService.CacheStatistics stats = quizBatchService.getCacheStatistics();
-        return ResponseEntity.ok(stats);
+        return ResponseEntity.ok(quizBatchService.getCacheStatistics());
     }
 }

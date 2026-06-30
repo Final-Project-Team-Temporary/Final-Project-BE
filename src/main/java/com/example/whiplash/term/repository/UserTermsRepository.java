@@ -14,18 +14,14 @@ import java.util.List;
 
 public interface UserTermsRepository extends JpaRepository<UserTerms, Long> {
 
-    @Query(value = "select ut from UserTerms ut join fetch ut.terms t where ut.user.id = :userId",
-           countQuery = "select count(ut) from UserTerms ut where ut.user.id = :userId")
+    @Query(value = "SELECT ut FROM UserTerms ut JOIN FETCH ut.terms t WHERE ut.user.id = :userId",
+           countQuery = "SELECT COUNT(ut) FROM UserTerms ut WHERE ut.user.id = :userId")
     Page<UserTerms> findByUserId(Long userId, Pageable pageable);
 
     List<UserTerms> findByUserId(Long userId);
 
-    // 중복 체크용
     boolean existsByUserAndTerms(User user, Terms terms);
 
-    /**
-     * 특정 기간에 저장한 용어 조회
-     */
     @Query("SELECT ut FROM UserTerms ut " +
             "WHERE ut.user.id = :userId " +
             "AND ut.createdAt BETWEEN :startDate AND :endDate")
@@ -36,15 +32,13 @@ public interface UserTermsRepository extends JpaRepository<UserTerms, Long> {
     );
 
     /**
-     * ⭐ 용어명 부분 검색 (LIKE '%keyword%')
-     * 예: "금" 검색 → "금리", "금융", "환금성"
+     * 용어명 부분 검색 (LIKE '%keyword%')
+     * Full-text index가 없는 환경에서도 동작하도록 LIKE로 변경
      */
-    @Query(value = "SELECT ut.* FROM UserTerms ut " +
-            "INNER JOIN terms t ON ut.terms.id = t.id" +
+    @Query("SELECT ut FROM UserTerms ut " +
             "WHERE ut.user.id = :userId " +
-            "AND MATCH(t.term_name) AGANIST (:keyword IN BOOLEAN MODE) " +
-            "ORDER BY ut.createdAt DESC",
-    nativeQuery = true)
+            "AND LOWER(ut.terms.termName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "ORDER BY ut.createdAt DESC")
     Page<UserTerms> searchByTermContaining(
             @Param("userId") Long userId,
             @Param("keyword") String keyword,
@@ -52,29 +46,46 @@ public interface UserTermsRepository extends JpaRepository<UserTerms, Long> {
     );
 
     /**
-     * ⭐ 용어명 시작 검색 (LIKE 'keyword%') - 자동완성용
-     * 예: "금" 검색 → "금리", "금융" (✅), "환금성" (❌)
+     * 용어명 전방 일치 검색 — 자동완성용
      */
     @Query("SELECT ut FROM UserTerms ut " +
             "WHERE ut.user.id = :userId " +
             "AND LOWER(ut.terms.termName) LIKE LOWER(CONCAT(:keyword, '%')) " +
             "ORDER BY ut.createdAt DESC")
-    List<UserTerms> searchByTermStartsWith(
+    Page<UserTerms> searchByTermStartsWith(
             @Param("userId") Long userId,
             @Param("keyword") String keyword,
             Pageable pageable
     );
 
     /**
-     * ⭐ 용어명 자동완성 (중복 제거, 최대 10개)
+     * 용어명 자동완성 제안 (중복 제거, 최대 10개)
      */
     @Query("SELECT DISTINCT ut.terms.termName FROM UserTerms ut " +
             "WHERE ut.user.id = :userId " +
-            "AND LOWER(ut.terms.termName) LIKE CONCAT(:keyword, '%') " +
+            "AND LOWER(ut.terms.termName) LIKE LOWER(CONCAT(:keyword, '%')) " +
             "ORDER BY ut.terms.termName ASC")
     List<String> findTermSuggestions(
             @Param("userId") Long userId,
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    /**
+     * 전체 사용자에 걸쳐 고유 termName 목록 반환 — 배치 처리용
+     */
+    @Query("SELECT DISTINCT ut.terms.termName FROM UserTerms ut")
+    List<String> findDistinctTermNames();
+
+    /**
+     * 활성 사용자 기준 용어를 보유 유저 수 내림차순으로 반환 — 배치 우선순위 선별용.
+     * activeThreshold 이후 접속한 사용자의 용어만 대상으로 한다.
+     */
+    @Query("SELECT ut.terms.termName FROM UserTerms ut " +
+           "WHERE ut.user.lastLoginAt >= :activeThreshold " +
+           "GROUP BY ut.terms.termName " +
+           "ORDER BY COUNT(ut.user.id) DESC")
+    List<String> findPrioritizedTermNames(
+            @Param("activeThreshold") LocalDateTime activeThreshold,
+            Pageable pageable);
 }

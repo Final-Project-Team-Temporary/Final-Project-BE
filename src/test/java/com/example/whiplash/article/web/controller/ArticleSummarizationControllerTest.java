@@ -1,10 +1,11 @@
 package com.example.whiplash.article.web.controller;
 
 import com.example.whiplash.MvcTestSupport;
-import com.example.whiplash.article.service.ArticleRegisterInfo;
-import com.example.whiplash.article.service.ArticleSummarizationService;
-import com.example.whiplash.article.web.dto.request.ArticleSummarizationRequest;
-import com.example.whiplash.article.web.dto.response.ArticleSummarizationResponse;
+import com.example.whiplash.article.original.service.ArticleRegisterInfo;
+import com.example.whiplash.article.summary.service.ArticleSummarizationService;
+import com.example.whiplash.article.summary.web.controller.ArticleSummarizationController;
+import com.example.whiplash.article.summary.web.dto.request.ArticleSummarizationRequest;
+import com.example.whiplash.article.summary.web.dto.response.ArticleSummarizationResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;

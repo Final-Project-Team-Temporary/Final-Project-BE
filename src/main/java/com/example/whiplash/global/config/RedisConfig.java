@@ -24,7 +24,7 @@ public class RedisConfig {
     public RedisConnectionFactory redisConnectionFactory(
         @Value("${spring.data.redis.host}") String host,
         @Value("${spring.data.redis.port}") int port,
-        @Value("${spring.data.redis.ssl.enabled:true}") boolean sslEnabled) {
+        @Value("${spring.data.redis.ssl.enabled:false}") boolean sslEnabled) {
 
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         config.setHostName(host);

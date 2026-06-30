@@ -47,7 +47,7 @@ spring:
       org.quartz.scheduler.instanceId: AUTO
       org.quartz.threadPool.threadCount: 5
       org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-      org.quartz.jobStore.isClustered: false
+      org.quartz.jobStore.isClustered: true
 management:
   endpoints:
     web:
@@ -113,3 +113,4 @@ quiz:
     max-users-per-batch: ${QUIZ_BATCH_MAX_USERS}         # 한 번에 처리할 최대 사용자 수
     max-terms-per-user: ${QUIZ_BATCH_MAX_TERMS}           # 사용자당 최대 퀴즈 생성 용어 수
     active-days-threshold: ${QUIZ_BATCH_ACTIVE_DAYS}        # 활성 사용자 기준 (최근 30일 내 접속)
+    recovery-cron: "${QUIZ_BATCH_RECOVERY_CRON:0 0 * * * ?}"  # 실패 용어 재시도 (기본: 매시간)

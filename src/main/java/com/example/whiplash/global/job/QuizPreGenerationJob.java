@@ -25,7 +25,7 @@ public class QuizPreGenerationJob implements Job {
 
         try {
             // 배치 서비스 호출
-            quizBatchService.generateQuizzesForAllActiveUsers();
+            quizBatchService.generateQuizzesForAllTerms();
 
             log.info("퀴즈 미리 생성 Job 완료");
 
