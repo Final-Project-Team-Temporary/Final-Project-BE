@@ -76,4 +76,16 @@ public interface UserTermsRepository extends JpaRepository<UserTerms, Long> {
      */
     @Query("SELECT DISTINCT ut.terms.termName FROM UserTerms ut")
     List<String> findDistinctTermNames();
+
+    /**
+     * 활성 사용자 기준 용어를 보유 유저 수 내림차순으로 반환 — 배치 우선순위 선별용.
+     * activeThreshold 이후 접속한 사용자의 용어만 대상으로 한다.
+     */
+    @Query("SELECT ut.terms.termName FROM UserTerms ut " +
+           "WHERE ut.user.lastLoginAt >= :activeThreshold " +
+           "GROUP BY ut.terms.termName " +
+           "ORDER BY COUNT(ut.user.id) DESC")
+    List<String> findPrioritizedTermNames(
+            @Param("activeThreshold") LocalDateTime activeThreshold,
+            Pageable pageable);
 }
