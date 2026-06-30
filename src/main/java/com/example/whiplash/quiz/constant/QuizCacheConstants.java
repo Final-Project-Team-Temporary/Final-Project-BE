@@ -12,6 +12,9 @@ public final class QuizCacheConstants {
     /** 기사 기반 퀴즈 캐시 키 prefix — quiz:article:{articleId}:{count} */
     public static final String ARTICLE_KEY_PREFIX = "quiz:article:";
 
+    /** 배치 실패 용어 보관 Set 키 — quiz:batch:failed */
+    public static final String BATCH_FAILED_SET_KEY = "quiz:batch:failed";
+
     /** Redis 풀 캐시 TTL (1시간) */
     public static final Duration POOL_TTL = Duration.ofHours(1);
 

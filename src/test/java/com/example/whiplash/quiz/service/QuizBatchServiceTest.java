@@ -2,7 +2,9 @@ package com.example.whiplash.quiz.service;
 
 import com.example.whiplash.POJOTestSupport;
 import com.example.whiplash.quiz.constant.QuizCacheConstants;
+import com.example.whiplash.quiz.document.TermQuizPool;
 import com.example.whiplash.quiz.dto.QuizDto;
+import org.springframework.data.domain.Pageable;
 import com.example.whiplash.quiz.repository.TermQuizPoolRepository;
 import com.example.whiplash.term.repository.UserTermsRepository;
 import com.example.whiplash.user.repository.user.UserRepository;
@@ -13,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -34,7 +37,8 @@ class QuizBatchServiceTest extends POJOTestSupport {
     @Mock private TermQuizPoolService termQuizPoolService;
     @Mock private RedisTemplate<String, Object> redisTemplate;
     @Mock private ValueOperations<String, Object> valueOperations;
-    // 테스트에서는 호출 즉시 동기 실행하는 executor로 대체
+    @Mock private SetOperations<String, Object> setOperations;
+
     private final Executor syncExecutor = Runnable::run;
 
     @InjectMocks
@@ -47,6 +51,7 @@ class QuizBatchServiceTest extends POJOTestSupport {
         ReflectionTestUtils.setField(quizBatchService, "maxTermsPerBatch", 50);
         ReflectionTestUtils.setField(quizBatchService, "quizTaskExecutor", syncExecutor);
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(redisTemplate.opsForSet()).willReturn(setOperations);
     }
 
     private List<QuizDto> makeQuizzes(int count) {
@@ -55,40 +60,101 @@ class QuizBatchServiceTest extends POJOTestSupport {
                 .toList();
     }
 
+    private TermQuizPool makePoolWithName(String termName) {
+        // Mockito 중첩 stubbing 방지 — 실제 객체 사용
+        return TermQuizPool.create(termName, List.of());
+    }
+
+    // ───────────────────────────────────────────────
+    // generateQuizzesForAllTerms — 용어 선별 개선
+    // ───────────────────────────────────────────────
+
     @Test
-    @DisplayName("배치는 고유 termName 단위로 처리하며, 풀이 없는 용어만 AI를 호출한다")
-    void generateQuizzesForAllTerms_callsAiOnlyForTermsWithoutPool() {
+    @DisplayName("배치는 활성 사용자 기반 우선순위 쿼리로 용어를 조회한다")
+    void generateQuizzesForAllTerms_usesActiveUserPrioritizedQuery() {
         // given
-        given(userTermsRepository.findDistinctTermNames())
-                .willReturn(List.of("ETF", "PER", "금리"));
-
-        // ETF는 이미 풀 있음, PER·금리는 없음
-        given(termQuizPoolRepository.existsByTermName("ETF")).willReturn(true);
-        given(termQuizPoolRepository.existsByTermName("PER")).willReturn(false);
-        given(termQuizPoolRepository.existsByTermName("금리")).willReturn(false);
-
-        given(termQuizPoolService.generateAndPersist(eq("PER"), anyString()))
-                .willReturn(makeQuizzes(12));
-        given(termQuizPoolService.generateAndPersist(eq("금리"), anyString()))
+        given(userTermsRepository.findPrioritizedTermNames(any(), any()))
+                .willReturn(List.of("ETF", "PER"));
+        given(termQuizPoolRepository.findAllWithTermNameOnly()).willReturn(List.of());
+        given(termQuizPoolService.generateAndPersist(anyString(), anyString()))
                 .willReturn(makeQuizzes(12));
 
         // when
         quizBatchService.generateQuizzesForAllTerms();
 
-        // then: ETF는 스킵, PER·금리만 생성
+        // then: 기존 findDistinctTermNames 미호출, 새 쿼리 호출
+        verify(userTermsRepository, never()).findDistinctTermNames();
+        verify(userTermsRepository).findPrioritizedTermNames(any(), any());
+    }
+
+    @Test
+    @DisplayName("배치는 MongoDB 존재 여부를 bulk 1회 조회한다")
+    void generateQuizzesForAllTerms_usesBulkMongoCheck() {
+        // given
+        given(userTermsRepository.findPrioritizedTermNames(any(), any()))
+                .willReturn(List.of("ETF", "PER", "금리"));
+        // ETF는 이미 존재
+        given(termQuizPoolRepository.findAllWithTermNameOnly())
+                .willReturn(List.of(makePoolWithName("ETF")));
+        given(termQuizPoolService.generateAndPersist(anyString(), anyString()))
+                .willReturn(makeQuizzes(12));
+
+        // when
+        quizBatchService.generateQuizzesForAllTerms();
+
+        // then: bulk 조회 1회, 개별 existsByTermName 미호출
+        verify(termQuizPoolRepository).findAllWithTermNameOnly();
+        verify(termQuizPoolRepository, never()).existsByTermName(anyString());
+        // ETF는 스킵, PER·금리만 생성
         verify(termQuizPoolService, never()).generateAndPersist(eq("ETF"), anyString());
         verify(termQuizPoolService).generateAndPersist(eq("PER"), anyString());
         verify(termQuizPoolService).generateAndPersist(eq("금리"), anyString());
     }
 
     @Test
+    @DisplayName("생성 실패한 용어는 Redis 실패 Set에 적재된다")
+    void generateQuizzesForAllTerms_addsFailedTermToRedisSet() {
+        // given
+        given(userTermsRepository.findPrioritizedTermNames(any(), any()))
+                .willReturn(List.of("ETF", "PER"));
+        given(termQuizPoolRepository.findAllWithTermNameOnly()).willReturn(List.of());
+
+        given(termQuizPoolService.generateAndPersist(eq("ETF"), anyString()))
+                .willThrow(new RuntimeException("AI 서버 오류"));
+        given(termQuizPoolService.generateAndPersist(eq("PER"), anyString()))
+                .willReturn(makeQuizzes(12));
+
+        // when
+        quizBatchService.generateQuizzesForAllTerms();
+
+        // then: ETF만 실패 Set에 추가
+        verify(setOperations).add(eq(QuizCacheConstants.BATCH_FAILED_SET_KEY), eq("ETF"));
+        verify(setOperations, never()).add(eq(QuizCacheConstants.BATCH_FAILED_SET_KEY), eq("PER"));
+    }
+
+    @Test
+    @DisplayName("조회된 용어가 없으면 아무 처리도 하지 않는다")
+    void generateQuizzesForAllTerms_doesNothing_whenNoTerms() {
+        // given
+        given(userTermsRepository.findPrioritizedTermNames(any(), any()))
+                .willReturn(List.of());
+
+        // when
+        quizBatchService.generateQuizzesForAllTerms();
+
+        // then
+        verify(termQuizPoolRepository, never()).findAllWithTermNameOnly();
+        verify(termQuizPoolService, never()).generateAndPersist(anyString(), anyString());
+    }
+
+    @Test
     @DisplayName("모든 용어에 풀이 있으면 AI 호출이 발생하지 않는다")
     void generateQuizzesForAllTerms_skipsAll_whenAllPoolsExist() {
         // given
-        given(userTermsRepository.findDistinctTermNames())
+        given(userTermsRepository.findPrioritizedTermNames(any(), any()))
                 .willReturn(List.of("ETF", "PER"));
-        given(termQuizPoolRepository.existsByTermName("ETF")).willReturn(true);
-        given(termQuizPoolRepository.existsByTermName("PER")).willReturn(true);
+        given(termQuizPoolRepository.findAllWithTermNameOnly())
+                .willReturn(List.of(makePoolWithName("ETF"), makePoolWithName("PER")));
 
         // when
         quizBatchService.generateQuizzesForAllTerms();
@@ -98,24 +164,13 @@ class QuizBatchServiceTest extends POJOTestSupport {
     }
 
     @Test
-    @DisplayName("저장된 용어가 없으면 아무 처리도 하지 않는다")
-    void generateQuizzesForAllTerms_doesNothing_whenNoTerms() {
-        given(userTermsRepository.findDistinctTermNames()).willReturn(List.of());
-
-        quizBatchService.generateQuizzesForAllTerms();
-
-        verify(termQuizPoolService, never()).generateAndPersist(anyString(), anyString());
-    }
-
-    @Test
     @DisplayName("일부 용어의 생성이 실패해도 나머지 용어는 계속 처리한다")
     void generateQuizzesForAllTerms_continuesOnFailure() {
         // given
-        given(userTermsRepository.findDistinctTermNames())
+        given(userTermsRepository.findPrioritizedTermNames(any(), any()))
                 .willReturn(List.of("ETF", "PER", "금리"));
-        given(termQuizPoolRepository.existsByTermName(anyString())).willReturn(false);
+        given(termQuizPoolRepository.findAllWithTermNameOnly()).willReturn(List.of());
 
-        // ETF 생성 실패
         given(termQuizPoolService.generateAndPersist(eq("ETF"), anyString()))
                 .willThrow(new RuntimeException("AI 서버 오류"));
         given(termQuizPoolService.generateAndPersist(eq("PER"), anyString()))
@@ -123,12 +178,77 @@ class QuizBatchServiceTest extends POJOTestSupport {
         given(termQuizPoolService.generateAndPersist(eq("금리"), anyString()))
                 .willReturn(makeQuizzes(12));
 
-        // when: 예외 전파 없이 완료돼야 함
+        // when
         quizBatchService.generateQuizzesForAllTerms();
 
-        // then: PER, 금리는 생성됨
+        // then
         verify(termQuizPoolService).generateAndPersist(eq("PER"), anyString());
         verify(termQuizPoolService).generateAndPersist(eq("금리"), anyString());
+    }
+
+    // ───────────────────────────────────────────────
+    // retryFailedTerms
+    // ───────────────────────────────────────────────
+
+    @Test
+    @DisplayName("실패 Set이 비어있으면 재시도 처리를 하지 않는다")
+    void retryFailedTerms_doesNothing_whenFailedSetIsEmpty() {
+        // given
+        given(setOperations.members(QuizCacheConstants.BATCH_FAILED_SET_KEY))
+                .willReturn(Set.of());
+
+        // when
+        quizBatchService.retryFailedTerms();
+
+        // then
+        verify(termQuizPoolService, never()).generateAndPersist(anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("재시도 성공 시 해당 용어를 실패 Set에서 제거한다")
+    void retryFailedTerms_removesFromSet_whenRetrySucceeds() {
+        // given
+        given(setOperations.members(QuizCacheConstants.BATCH_FAILED_SET_KEY))
+                .willReturn(Set.of("ETF"));
+        given(termQuizPoolService.generateAndPersist(eq("ETF"), anyString()))
+                .willReturn(makeQuizzes(12));
+
+        // when
+        quizBatchService.retryFailedTerms();
+
+        // then
+        verify(termQuizPoolService).generateAndPersist(eq("ETF"), anyString());
+        verify(setOperations).remove(QuizCacheConstants.BATCH_FAILED_SET_KEY, "ETF");
+    }
+
+    @Test
+    @DisplayName("재시도 실패 시 해당 용어를 실패 Set에서 제거하지 않는다")
+    void retryFailedTerms_keepsInSet_whenRetryFails() {
+        // given
+        given(setOperations.members(QuizCacheConstants.BATCH_FAILED_SET_KEY))
+                .willReturn(Set.of("ETF"));
+        given(termQuizPoolService.generateAndPersist(eq("ETF"), anyString()))
+                .willThrow(new RuntimeException("AI 서버 오류"));
+
+        // when
+        quizBatchService.retryFailedTerms();
+
+        // then
+        verify(setOperations, never()).remove(anyString(), any());
+    }
+
+    @Test
+    @DisplayName("실패 Set null 반환 시 재시도 처리를 하지 않는다")
+    void retryFailedTerms_doesNothing_whenFailedSetIsNull() {
+        // given
+        given(setOperations.members(QuizCacheConstants.BATCH_FAILED_SET_KEY))
+                .willReturn(null);
+
+        // when
+        quizBatchService.retryFailedTerms();
+
+        // then
+        verify(termQuizPoolService, never()).generateAndPersist(anyString(), anyString());
     }
 
     // ───────────────────────────────────────────────
@@ -140,7 +260,8 @@ class QuizBatchServiceTest extends POJOTestSupport {
     void getCacheStatistics_returnsCorrectAggregation() {
         // given
         given(termQuizPoolRepository.count()).willReturn(8L);
-        given(userTermsRepository.findDistinctTermNames()).willReturn(List.of("ETF", "PER", "금리", "환율", "채권", "주식", "배당", "EPS", "PBR", "ROE"));
+        given(userTermsRepository.findDistinctTermNames()).willReturn(
+                List.of("ETF", "PER", "금리", "환율", "채권", "주식", "배당", "EPS", "PBR", "ROE"));
         given(redisTemplate.keys(QuizCacheConstants.POOL_KEY_PREFIX + "*"))
                 .willReturn(Set.of("quiz:pool:ETF", "quiz:pool:PER", "quiz:pool:금리"));
         given(userRepository.countActiveUsersSince(any())).willReturn(5L);
